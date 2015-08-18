@@ -21,4 +21,4 @@
           g(ng-repeat="room in level.rooms")
             path(id="room{{room.id}}", d="{{room.path}}", fill="white", stroke="#428bca", stroke-width="3")
             use(ng-repeat="light in room.lights", id="light-{{light.swapDeviceAddress}}-{{light.outputNb}}", x="{{lightPosition(room, light)[0]}}", y="{{lightPosition(room, light)[1]}}", xlink:href="{{lightDef(room, light)}}", fill="{{lightFill(room, light)}}")
-      
+

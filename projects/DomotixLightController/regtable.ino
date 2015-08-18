@@ -106,4 +106,3 @@ const void updtPulseWidth(byte rId, byte *value)
     regPulseWidth.setValueFromBeBuffer(value);
     initRegister();
 }
-

@@ -471,5 +471,3 @@ void stopPulse()
 
     digitalWrite(ledPin, LOW);
 }
-
-

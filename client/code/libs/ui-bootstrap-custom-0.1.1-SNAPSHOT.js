@@ -95,7 +95,6 @@ angular.module('ui.bootstrap.accordion').directive('accordionGroup', ['$parse', 
     }
   };
 }]);
-
 // The `$dialogProvider` can be used to configure global defaults for your
 // `$dialog` service.
 var dialogModule = angular.module('ui.bootstrap.dialog', ['ui.bootstrap.transition']);
