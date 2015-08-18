@@ -1,0 +1,133 @@
+{  
+   "rabbit_version":"2.8.4",
+   "users":[  
+      {  
+         "name":"domotix",
+         "password_hash":"qbjutNEUBBXkEGCnnDAwXkMGHto=",
+         "tags":"monitoring"
+      }
+   ],
+   "vhosts":[  
+      {  
+         "name":"/domotix"
+      }
+   ],
+   "permissions":[
+      {  
+         "user":"domotix",
+         "vhost":"/domotix",
+         "configure":".*",
+         "write":".*",
+         "read":".*"
+      }
+   ],
+   "queues":[  
+      {  
+         "name":"MANAGEMENT",
+         "vhost":"/domotix",
+         "durable":true,
+         "auto_delete":false,
+         "arguments":{  
+
+         }
+      },
+      {  
+         "name":"_ALL",
+         "vhost":"/domotix",
+         "durable":true,
+         "auto_delete":false,
+         "arguments":{  
+
+         }
+      }
+   ],
+   "exchanges":[  
+      {  
+         "name":"TEMPERATURE",
+         "vhost":"/domotix",
+         "type":"fanout",
+         "durable":true,
+         "auto_delete":false,
+         "internal":false,
+         "arguments":{  
+
+         }
+      },
+      {  
+         "name":"SWAP_PACKET",
+         "vhost":"/domotix",
+         "type":"direct",
+         "durable":true,
+         "auto_delete":false,
+         "internal":false,
+         "arguments":{  
+
+         }
+      },
+      {  
+         "name":"MANAGEMENT",
+         "vhost":"/domotix",
+         "type":"topic",
+         "durable":true,
+         "auto_delete":false,
+         "internal":false,
+         "arguments":{  
+
+         }
+      },
+      {  
+         "name":"LIGHT_STATUS",
+         "vhost":"/domotix",
+         "type":"fanout",
+         "durable":true,
+         "auto_delete":false,
+         "internal":false,
+         "arguments":{  
+
+         }
+      },
+      {  
+         "name":"MANAGEMENT",
+         "vhost":"/",
+         "type":"fanout",
+         "durable":true,
+         "auto_delete":false,
+         "internal":false,
+         "arguments":{  
+
+         }
+      }
+   ],
+   "bindings":[  
+      {  
+         "source":"MANAGEMENT",
+         "vhost":"/domotix",
+         "destination":"_ALL",
+         "destination_type":"queue",
+         "routing_key":"",
+         "arguments":{  
+
+         }
+      },
+      {  
+         "source":"MANAGEMENT",
+         "vhost":"/domotix",
+         "destination":"MANAGEMENT",
+         "destination_type":"queue",
+         "routing_key":"MANAGEMENT",
+         "arguments":{  
+
+         }
+      },
+      {  
+         "source":"SWAP_PACKET",
+         "vhost":"/domotix",
+         "destination":"_ALL",
+         "destination_type":"queue",
+         "routing_key":"SWAP_PACKET",
+         "arguments":{  
+
+         }
+      }
+   ]
+}
