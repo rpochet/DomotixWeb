@@ -598,11 +598,17 @@ exports.actions = (req, res, ss) ->
         res state.getState swap.MQ.Type.LIGHT_STATUS
     
     getPressure: ->
-        res swap.getPressure state.getState swap.MQ.Type.PRESSURE
+        results = for device, swapPacket of state.getState swap.MQ.Type.PRESSURE
+            obj = {}
+            obj[device] = swap.getPressure swapPacket
+            obj
+        res results
     
     getTemperature: ->
         results = for device, swapPacket of state.getState swap.MQ.Type.TEMPERATURE
-            device: swap.getTemperature swapPacket
+            obj = {}
+            obj[device] = swap.getTemperature swapPacket
+            obj
         res results
     
     refreshDevices: ->

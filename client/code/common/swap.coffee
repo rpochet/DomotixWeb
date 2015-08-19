@@ -63,7 +63,7 @@ getValue = (value, length) ->
 
 getTemperature = (swapPacket) ->
     register = swapPacket.value
-    return register.value[0] * 256 + register.value[1]
+    return (register.value[0] * 256 + register.value[1]) / 100
 
 # Assume also contain temperature, first two bytes
 getPressure = (swapPacket) ->
