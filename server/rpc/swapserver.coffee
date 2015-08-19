@@ -601,7 +601,9 @@ exports.actions = (req, res, ss) ->
         res swap.getPressure state.getState swap.MQ.Type.PRESSURE
     
     getTemperature: ->
-        res swap.getTemperature state.getState swap.MQ.Type.TEMPERATURE
+        results = for device, swapPacket of state.getState swap.MQ.Type.TEMPERATURE
+            device: swap.getTemperature swapPacket
+        res results
     
     refreshDevices: ->
         initLevels()

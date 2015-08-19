@@ -62,7 +62,9 @@ getValue = (value, length) ->
         (value >> 8 * i) & 255 for i in [length-1..0]
 
 getTemperature = (swapPacket) ->
+    console.log swapPacket
     register = swapPacket.value
+    console.log register
     return register.value.value[0] * 256 + register.value.value[1]
 
 getPressure = (swapPacket) ->
