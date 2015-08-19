@@ -166,3 +166,5 @@ module.exports =
     bytePad : bytePad
     num2byte : num2byte
     getValue: getValue
+    getTemperature: getTemperature
+    getPressure: getPressure
