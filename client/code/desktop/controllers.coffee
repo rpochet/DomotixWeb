@@ -432,12 +432,10 @@ module.exports = (swapApp) ->
           $scope.levels = levels
       ss.rpc 'swapserver.getTemperature', (temperature) ->
         $scope.$apply () ->
-          $scope.temperature = swap.getTemperature(temperature)
-          $scope.pressure = swap.getTemperature(temperature)
+          $scope.temperature = temperature
       ss.rpc 'swapserver.getPressure', (pressure) ->
         $scope.$apply () ->
-          $scope.temperature = swap.getTemperature(pressure)
-          $scope.pressure = swap.getTemperature(pressure)
+          $scope.pressure = pressure
   ]
   
   swapApp.controller 'ConfigCtrl', ['$scope', 'rpc', ($scope, rpc) ->
