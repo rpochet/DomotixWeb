@@ -209,7 +209,7 @@ addSwapEvent = (swapEvent, swapDevice) ->
 ####################################################################################
 # Add SWAP Packet to CouchDB
 ####################################################################################
-addSwapPacket = (swapPacket, packetDevice, foundRegister) ->
+addSwapPacket = (swapPacket, swapDevice, swapRegister) ->
     dbPanstampPacketsPool.addTask dbPanstampPackets.save, swapPacket.time.time, swapPacket, (err, doc) ->
         logger.error "Save SWAP packet #{swapPacket.time.time} failed: #{JSON.stringify(err)}" if err?
     
@@ -223,26 +223,21 @@ addSwapPacket = (swapPacket, packetDevice, foundRegister) ->
 # Publish to SS
 # Publish to MQ 
 ####################################################################################
-sendToClient = (topics, swapPacket, swapDevice, swapRegister, customValues) ->
-    i = 0
+sendToClient = (topics, swapPacket, swapDevice, swapRegister) ->
     
     topics = [topics] if not Array.isArray topics
     
     for topic in topics
         
-        customValue = if i < customValues.length then customValues[i] else undefined
+        nonce = state.updateState topic, swapPacket.source, swapPacket
         
-        nonce = state.updateState topic, swapPacket.source, swapPacket, customValue
-        
-        ss.api.publish.all topic, customValue
+        ss.api.publish.all topic
         
         pubSub.publish topic, 
             nonce: nonce
             swapPacket: swapPacket
             swapDevice: swapDevice
             swapRegister: swapRegister
-        
-        i++
 
 
 ####################################################################################
@@ -459,33 +454,33 @@ swapPacketReceived = (swapPacket) ->
 ####################################################################################
 #
 ####################################################################################
-updateEndpointsValue = (packetDevice, register, swapPacket) ->
-    register.time = swapPacket.time
-    register.value = if swapPacket.value.length is undefined then [swapPacket.value] else swapPacket.value
+updateEndpointsValue = (swapDevice, swapRegister, swapPacket) ->
+    swapRegister.time = swapPacket.time
+    swapRegister.value = if swapPacket.value.length is undefined then [swapPacket.value] else swapPacket.value
     
-    if (packetDevice.product.indexOf swap.LightController.productCode) == 0
-        if swapPacket.regId == swap.LightController.Registers.Outputs.id
+    if (swapDevice.product.indexOf swap.LightController.productCode) == 0
+        if swapPacket.regId == swap.LightController.swapRegisters.Outputs.id
             for light in lights
                 do(light) ->
-                    if light.swapDeviceAddress == packetDevice.address 
+                    if light.swapDeviceAddress == swapDevice.address 
                         light.status = swapPacket.value[light.outputNb]
-            ss.api.publish.all swap.MQ.Type.LIGHT_STATUS
-        else if swapPacket.regId == swap.LightController.Registers.PressureTemperature.id
-            register.pressure = getPressure()
-            ss.api.publish.all swap.MQ.Type.PRESSURE
-            register.temperature = getTemperature()
-            ss.api.publish.all swap.MQ.Type.TEMPERATURE
-    else if (packetDevice.product.indexOf swap.LightSwitch.productCode) == 0
+            sendToClient swap.MQ.Type.LIGHT_STATUS, swapPacket, swapDevice, swapRegister
+        else if swapPacket.regId == swap.LightController.swapRegisters.PressureTemperature.id
+            swapRegister.pressure = getPressure()
+            sendToClient swap.MQ.Type.PRESSURE, swapPacket, swapDevice, swapRegister
+            swapRegister.temperature = getTemperature()
+            sendToClient swap.MQ.Type.TEMPERATURE, swapPacket, swapDevice, swapRegister
+    else if (swapDevice.product.indexOf swap.LightSwitch.productCode) == 0
         if swapPacket.regId == swap.LightSwitch.Registers.Temperature.id
-            register.temperature = getTemperature()
-            ss.api.publish.all swap.MQ.Type.TEMPERATURE
+            swapRegister.temperature = getTemperature()
+            sendToClient swap.MQ.Type.TEMPERATURE, swapPacket, swapDevice, swapRegister
 
 ####################################################################################
 #
 ####################################################################################
-updateParamsValue = (packetDevice, register, swapPacket) ->
-    register.time = swapPacket.time
-    register.value = if swapPacket.value.length is undefined then [swapPacket.value] else swapPacket.value
+updateParamsValue = (packetDevice, swapRegister, swapPacket) ->
+    swapRegister.time = swapPacket.time
+    swapRegister.value = if swapPacket.value.length is undefined then [swapPacket.value] else swapPacket.value
 
 ####################################################################################
 # Return TRUE if device must be saved in DB
