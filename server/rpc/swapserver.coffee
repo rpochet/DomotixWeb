@@ -181,8 +181,8 @@ serial.on "started", () ->
             if swapPacket.func is swap.Functions.STATUS
                 logger.warn "Status Packet received from MQ Bridge, not allowed"
             else
-                addSwapPacket swapPacket, undefined
                 serial.send swapPacket
+                addSwapPacket swapPacket, undefined
     
 # Only for dummy serial modem
 serial.start() if Config.serial.dummy
@@ -210,7 +210,9 @@ addSwapEvent = (swapEvent, swapDevice) ->
 # Add SWAP Packet to CouchDB
 ####################################################################################
 addSwapPacket = (swapPacket, swapDevice, swapRegister) ->
-    dbPanstampPacketsPool.addTask dbPanstampPackets.save, swapPacket.time.time, swapPacket, (err, doc) ->
+    swapPacket.time = moment().format('YYYY:MM:dd HH:mm:ss.sss')
+    
+    dbPanstampPacketsPool.addTask dbPanstampPackets.save, swapPacket.time, swapPacket, (err, doc) ->
         logger.error "Save SWAP packet #{swapPacket.time.time} failed: #{JSON.stringify(err)}" if err?
     
     swapPackets.splice 0, 0, swapPacket
