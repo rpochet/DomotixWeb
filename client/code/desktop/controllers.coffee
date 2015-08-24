@@ -373,6 +373,8 @@ module.exports = (swapApp) ->
   
   swapApp.controller 'DomotixCtrl', ['$scope', 'rpc', ($scope, rpc) ->
     
+    $scope.devices = undefined
+    
     $scope.levels = undefined
     
     $scope.handleSvgClick = ($event, level) ->
@@ -387,7 +389,10 @@ module.exports = (swapApp) ->
               if ((x - pos[0]) * (x - pos[0]) + (y - pos[1]) * (y - pos[1])) < 10000
                 # Click on light in room
                 ss.rpc 'swapserver.sendSwapPacket', swap.LightController.Functions.Light, light.swapDeviceAddress, swap.LightController.Registers.Outputs.id, [light.outputNb, swap.LightController.Values.Toggle]
-            
+    
+    $scope.devicePosition = (device) ->
+      return [device.location.room.location.x + device.location.x, device.location.room.location.y + device.location.y];
+    
     $scope.lightPosition = (room, light) ->
       #dx and dy should be used for custom position in handeld device in order to avoid cross light tapping
       #return [room.location.x + light.location.x + (light.location.dx || 0), room.location.y + light.location.y + (light.location.dy || 0)];
@@ -404,14 +409,17 @@ module.exports = (swapApp) ->
         return 'url(#g1)';
       else 
         return 'url(#g2)';
+        
+    ss.event.on 'devicesUpdated', () ->
+      ss.rpc 'swapserver.getDevices', (devices) ->
+        $scope.$apply () ->
+          $scope.devices = devices
     
     ss.event.on 'temperatureUpdated', (temperature) ->
-      $scope.$apply () ->
-          $scope.temperature = temperature
+      displayTemperature temperature
     
     ss.event.on 'pressureUpdated', (pressure) ->
-      $scope.$apply () ->
-          $scope.pressure = pressure
+      displayPressure pressure
     
     ss.event.on 'lightStatusUpdated', (lightStatus) ->
       $scope.$apply () ->
@@ -422,18 +430,47 @@ module.exports = (swapApp) ->
                 for light in room.lights
                   do (light) ->
                     if lightStatus.regAddress == light.swapDeviceAddress
-                          light.status = lightStatus.value[light.outputNb]
+                      light.status = lightStatus.value[light.outputNb]
+    
+    displayTemperature = (temperature) ->
+      $scope.temperature = {}
+      $scope.$apply () ->
+        for devAddr, temp of temperature
+          $scope.temperature[devAddr] = {}
+          $scope.temperature[devAddr].temperature = temp
+          $scope.temperature[devAddr].location = $scope.devices['DEV' + swap.num2byte(devAddr)].location
+          
+          $scope.devices['DEV' + swap.num2byte(devAddr)].temperature = temp
+          
+          return
+    
+    displayPressure = (pressure) ->
+      $scope.pressure = {}
+      $scope.$apply () ->
+        for devAddr, pres of pressure
+          $scope.pressure[devAddr] = {}
+          $scope.pressure[devAddr].pressure = pres
+          $scope.pressure[devAddr].location = $scope.devices['DEV' + swap.num2byte(devAddr)].location
+          
+          $scope.devices['DEV' + swap.num2byte(devAddr)].pressure = pres
+          
+          return
+    
+    displayTemperaturePressure = () ->
+      ss.rpc 'swapserver.getTemperature', (temperature) ->
+        displayTemperature temperature
+      ss.rpc 'swapserver.getPressure', (pressure) ->
+        displayPressure pressure
     
     ss.server.on 'ready', () ->
       ss.rpc 'swapserver.getLevels', (levels) ->
         $scope.$apply () ->
           $scope.levels = levels
-      ss.rpc 'swapserver.getTemperature', (temperature) ->
+      ss.rpc 'swapserver.getDevices', (devices) ->
         $scope.$apply () ->
-          $scope.temperature = temperature
-      ss.rpc 'swapserver.getPressure', (pressure) ->
-        $scope.$apply () ->
-          $scope.pressure = pressure
+          $scope.devices = devices
+          displayTemperaturePressure()
+    
   ]
   
   swapApp.controller 'ConfigCtrl', ['$scope', 'rpc', ($scope, rpc) ->

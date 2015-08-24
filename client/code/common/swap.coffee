@@ -69,7 +69,7 @@ getTemperature = (swapPacket) ->
 getPressure = (swapPacket) ->
     register = swapPacket.value
     return "N.A" if register.value.length != 6
-    return register.value[2] * 256 * 256 * 256 + register.value[3] * 256 * 256 + register.value[4] * 256 + register.value[5]
+    return (register.value[2] * 256 * 256 * 256 + register.value[3] * 256 * 256 + register.value[4] * 256 + register.value[5]) / 100
 
 Address =
     BROADCAST: 255

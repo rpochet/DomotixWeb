@@ -1,10 +1,5 @@
 .container(ng-controller="DomotixCtrl", data-spy="scroll", data-target=".domotix", style="position: relative;")
   .domotix
-    .row
-      span(ng-repeat="(dev, temp) in temperature")
-        | temp
-      span(ng-repeat="(dev, pres) in pressure")
-        | pres
     tabs
       pane(ng-repeat="level in levels", title="{{level.name}}")
         svg(viewBox="0 0 1200 1200", version = "1.1", width="1200px", height="1200px", ng-click="handleSvgClick($event, level)")
@@ -21,7 +16,13 @@
               stop(stop-color="white", offset="100%")
           
           path(id="level{{level.id}}", d="{{level.path}}", fill="white", stroke="#428bca", stroke-width="6")
+          
           g(ng-repeat="room in level.rooms")
             path(id="room{{room.id}}", d="{{room.path}}", fill="white", stroke="#428bca", stroke-width="3")
             use(ng-repeat="light in room.lights", id="light-{{light.swapDeviceAddress}}-{{light.outputNb}}", x="{{lightPosition(room, light)[0]}}", y="{{lightPosition(room, light)[1]}}", xlink:href="{{lightDef(room, light)}}", fill="{{lightFill(room, light)}}")
-
+            
+          g(ng-repeat="device in devices")
+            text(x="{{devicePosition(device)[0]}}", y="{{devicePosition(device)[1]}}", ng-show="device.temperature")
+              | {{device.temperature}} °C
+            text(x="{{devicePosition(device)[0]}}", y="{{devicePosition(device)[1] + 20}}", ng-show="device.pressure")
+              | {{device.pressure}} mbar
