@@ -192,7 +192,7 @@ serial.start() if Config.serial.dummy
 # Add SWAP Event to CouchDB and log it
 ####################################################################################
 addSwapEvent = (swapEvent, swapDevice) ->
-    swapEvent.time = moment().format('YYYY:MM:dd HH:mm:ss.sss')
+    swapEvent.time = moment().format('YYYY:MM:DD HH:mm:ss.sss')
     
     dbPanstampEventsPool.addTask dbPanstampEvents.save, swapEvent.time, swapEvent, (err, doc) ->
         logger.error "Save SWAP event #{swapEvent.time} failed: #{JSON.stringify(err)}" if err?
@@ -210,7 +210,7 @@ addSwapEvent = (swapEvent, swapDevice) ->
 # Add SWAP Packet to CouchDB
 ####################################################################################
 addSwapPacket = (swapPacket, swapDevice, swapRegister) ->
-    swapPacket.time = moment().format('YYYY:MM:dd HH:mm:ss.sss')
+    swapPacket.time = moment().format('YYYY:MM:DD HH:mm:ss.sss')
     
     dbPanstampPacketsPool.addTask dbPanstampPackets.save, swapPacket.time, swapPacket, (err, doc) ->
         logger.error "Save SWAP packet #{swapPacket.time.time} failed: #{JSON.stringify(err)}" if err?
