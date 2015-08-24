@@ -62,14 +62,23 @@ getValue = (value, length) ->
         (value >> 8 * i) & 255 for i in [length-1..0]
 
 getTemperature = (swapPacket) ->
-    register = swapPacket.value
-    return (register.value[0] * 256 + register.value[1]) / 100
+    return (swapPacket.value[0] * 256 + swapPacket.value[1]) / 100
 
 # Assume also contain temperature, first two bytes
 getPressure = (swapPacket) ->
-    register = swapPacket.value
-    return "N.A" if register.value.length != 6
-    return (register.value[2] * 256 * 256 * 256 + register.value[3] * 256 * 256 + register.value[4] * 256 + register.value[5]) / 100
+    return "N.A" if swapPacket.value.length != 6
+    return (swapPacket.value[2] * 256 * 256 * 256 + swapPacket.value[3] * 256 * 256 + swapPacket.value[4] * 256 + swapPacket.value[5]) / 100
+
+
+#getTemperature = (swapPacket) ->
+#    register = swapPacket.value
+#    return (register.value[0] * 256 + register.value[1]) / 100
+
+# Assume also contain temperature, first two bytes
+#getPressure = (swapPacket) ->
+#    register = swapPacket.value
+#    return "N.A" if register.value.length != 6
+#    return (register.value[2] * 256 * 256 * 256 + register.value[3] * 256 * 256 + register.value[4] * 256 + register.value[5]) / 100
 
 Address =
     BROADCAST: 255
