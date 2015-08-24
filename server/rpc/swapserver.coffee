@@ -150,7 +150,7 @@ initSwapPacketsEvents = () ->
 addSwapEvent = (swapEvent, swapDevice) ->
     swapEvent.time = moment().format()
     
-    dbPanstampEvents.save swapEvent.time, swapEvent, (err, doc) ->
+    dbPanstampEventsPool.addTask dbPanstampEvents.save swapEvent.time, swapEvent, (err, doc) ->
         logger.error "Save SWAP event #{swapEvent.time} failed: #{JSON.stringify(err)}" if err?
     
     logger.warn "EVENT: #{swapEvent.topic} - #{swapEvent.text} @#{swapEvent.time}" if swapEvent.type is "warn"
@@ -204,7 +204,7 @@ addSwapPacket = (swapPacket, packetDevice, foundRegister) ->
         if !send
             sendToClient swap.MQ.Type.SWAP_PACKET, swapPacket, packetDevice, foundRegister
     
-    dbPanstampPackets.save swapPacket.time.time, swapPacket, (err, doc) ->
+    dbPanstampPacketsPool.addTask dbPanstampPackets.save swapPacket.time.time, swapPacket, (err, doc) ->
         logger.error "Save SWAP packet #{swapPacket.time.time} failed: #{JSON.stringify(err)}" if err?
     
     swapPackets.splice 0, 0, swapPacket
@@ -331,7 +331,7 @@ swapPacketReceived = (swapPacket) ->
                     name: "newDevice"
                     text: "New device detected: #{packetDevice.productCode}, #{packetDevice.address}"
                 
-                dbPanstamp.save "DEV" + swap.num2byte(packetDevice.address), packetDevice, (err, doc) ->
+                dbPanstampPool.addTask dbPanstamp.save "DEV" + swap.num2byte(packetDevice.address), packetDevice, (err, doc) ->
                     return logger.error "Save new device DEV#{swap.num2byte(packetDevice.address)} failed: #{JSON.stringify(err)}" if err?
                     packetDevice._id = doc._id
                     packetDevice._rev = doc._rev
@@ -342,7 +342,6 @@ swapPacketReceived = (swapPacket) ->
                         text: "New packetDevice #{packetDevice.address} added: #{packetDevice.product.productCode} - #{devicesConfig[productCode].product} (#{devicesConfig[productCode].developer})"
                         packetDevice: packetDevice
                 
-                sleep.sleep 1
         return
     else
         packetDevice = devices["DEV" + swap.num2byte(swapPacket.source)]
@@ -591,12 +590,15 @@ exports.actions = (req, res, ss) ->
     getState: ->
         res state.getState()
     
+    # Return clients state
     getClients: ->
         res state.getState swap.MQ.Type.CLIENTS
     
+    # Return LightStatus register SWAP Packet for each ligt controler device
     getLightStatus: ->
         res state.getState swap.MQ.Type.LIGHT_STATUS
     
+    # For each device, compute pressure in mbar from SWAP Packet
     getPressure: ->
         results = for device, swapPacket of state.getState swap.MQ.Type.PRESSURE
             obj = {}
@@ -604,6 +606,7 @@ exports.actions = (req, res, ss) ->
             obj
         res results
     
+    # For each device, compute temperature in °C from SWAP Packet
     getTemperature: ->
         results = for device, swapPacket of state.getState swap.MQ.Type.TEMPERATURE
             obj = {}

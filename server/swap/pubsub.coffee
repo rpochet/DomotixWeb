@@ -11,7 +11,6 @@ class PubSub extends events.EventEmitter
         
         logger.info "Starting broker #{@config.impl}..."
         
-        @latest = {}
         self = this
         
         if @config.impl is "amqp"
@@ -45,7 +44,6 @@ class PubSub extends events.EventEmitter
     
     publish: (topic, data) ->
         logger.debug "Sending data to topic #{topic}..."
-        @latest[topic] = data
         
         if @config.impl is "amqp"
             @pub.publish topic, "", data, 
@@ -60,16 +58,12 @@ class PubSub extends events.EventEmitter
             client.send buffer, 0, buffer.length, @config.udp.outport, @config.udp.outhost, (error) ->
                 logger.error "Sending UDP message failed: #{error}" if error
     
-    getLatest: (topic) ->
-        if topic
-            return @latest[topic]
-        else
-            return @latest
-    
     destroy: () ->
         @publish swap.MQ.Type.MANAGEMENT, "PubSub is closed"
+        
         if @config.impl is "amqp"
             @pub.close
+        
         else if @config.impl is "udp"
             server.close
             client.close
