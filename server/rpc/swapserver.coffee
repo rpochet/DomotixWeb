@@ -75,7 +75,6 @@ initLights = () ->
                         for room in level.rooms
                             do (room) ->
                                 room.lights.push light if room.id == light.location.room_id
-        
         initDevicesConfig()
 
 ####################################################################################
@@ -144,74 +143,6 @@ initSwapPacketsEvents = () ->
                 swapEvents.push row.value
             ss.api.publish.all "swapEvent"
 
-####################################################################################
-#
-####################################################################################
-addSwapEvent = (swapEvent, swapDevice) ->
-    swapEvent.time = moment().format('YYYY:MM:dd HH:mm:ss.sss')
-    
-    dbPanstampEventsPool.addTask dbPanstampEvents.save, swapEvent.time, swapEvent, (err, doc) ->
-        logger.error "Save SWAP event #{swapEvent.time} failed: #{JSON.stringify(err)}" if err?
-    
-    logger.warn "EVENT: #{swapEvent.topic} - #{swapEvent.text} @#{swapEvent.time}" if swapEvent.type is "warn"
-    logger.info "EVENT: #{swapEvent.topic} - #{swapEvent.text} @#{swapEvent.time}" if swapEvent.type is "info"
-    logger.error "EVENT: #{swapEvent.topic} - #{swapEvent.text} @#{swapEvent.time}" if swapEvent.type is "error"
-    
-    swapEvents.splice 0, 0, swapEvent
-    swapEvents.pop() if swapEvents.length > historicLength
-    ss.api.publish.all "swapEvent", swapEvent
-
-####################################################################################
-#
-####################################################################################
-addSwapPacket = (swapPacket, packetDevice, foundRegister) ->
-    send = false
-    
-    return if packetDevice is undefined
-    
-    if swapPacket.func == swap.Functions.STATUS
-        
-        if (packetDevice.product.indexOf swap.LightController.productCode) == 0
-            
-            if swapPacket.regId == swap.LightController.Registers.Outputs.id
-                
-                # TODO Add support for multiple lights controller
-                sendToClient swap.MQ.Type.LIGHT_STATUS, swapPacket, packetDevice, foundRegister
-                
-                for light in lights
-                    do(light) ->
-                        if light.swapDeviceAddress == packetDevice.address 
-                            light.status = swapPacket.value[light.outputNb]
-                
-                ss.api.publish.all "lightStatusUpdated", state.getState swap.MQ.Type.LIGHT_STATUS
-                send = true
-                
-            else if swapPacket.regId == swap.LightController.Registers.PressureTemperature.id
-                
-                sendToClient [swap.MQ.Type.PRESSURE, swap.MQ.Type.TEMPERATURE], swapPacket, packetDevice, foundRegister
-                
-                ss.api.publish.all "temperatureUpdated", getTemperature
-                ss.api.publish.all "pressureUpdated", getPressure
-                send = true
-            
-        else if (packetDevice.product.indexOf swap.LightSwitch.productCode) == 0
-            
-            if swapPacket.regId == swap.LightSwitch.Registers.Temperature.id
-                
-                sendToClient swap.MQ.Type.TEMPERATURE, swapPacket, packetDevice, foundRegister
-                
-                ss.api.publish.all "temperatureUpdated", getTemperature
-                send = true
-            
-        if !send
-            sendToClient swap.MQ.Type.SWAP_PACKET, swapPacket, packetDevice, foundRegister
-    
-    dbPanstampPacketsPool.addTask dbPanstampPackets.save, swapPacket.time.time, swapPacket, (err, doc) ->
-        logger.error "Save SWAP packet #{swapPacket.time.time} failed: #{JSON.stringify(err)}" if err?
-    
-    swapPackets.splice 0, 0, swapPacket
-    swapPackets.pop() if swapPackets.length > historicLength
-    ss.api.publish.all "swapPacket", swapPacket
 
 ####################################################################################
 ####################################################################################
@@ -258,25 +189,98 @@ serial.start() if Config.serial.dummy
 
 
 ####################################################################################
-# Function to call when a packet is received
+# Add SWAP Event to CouchDB and log it
 ####################################################################################
-sendToClient = (topics, swapPacket, swapDevice, swapRegister) ->
+addSwapEvent = (swapEvent, swapDevice) ->
+    swapEvent.time = moment().format('YYYY:MM:dd HH:mm:ss.sss')
+    
+    dbPanstampEventsPool.addTask dbPanstampEvents.save, swapEvent.time, swapEvent, (err, doc) ->
+        logger.error "Save SWAP event #{swapEvent.time} failed: #{JSON.stringify(err)}" if err?
+    
+    logger.warn "EVENT: #{swapEvent.topic} - #{swapEvent.text} @#{swapEvent.time}" if swapEvent.type is "warn"
+    logger.info "EVENT: #{swapEvent.topic} - #{swapEvent.text} @#{swapEvent.time}" if swapEvent.type is "info"
+    logger.error "EVENT: #{swapEvent.topic} - #{swapEvent.text} @#{swapEvent.time}" if swapEvent.type is "error"
+    
+    swapEvents.splice 0, 0, swapEvent
+    swapEvents.pop() if swapEvents.length > historicLength
+    ss.api.publish.all "swapEvent", swapEvent
+
+
+####################################################################################
+# Add SWAP Packet to CouchDB and log it
+####################################################################################
+addSwapPacket = (swapPacket, packetDevice, foundRegister) ->
+    send = false
+    
+    return if packetDevice is undefined
+    
+    if swapPacket.func == swap.Functions.STATUS
+        
+        if (packetDevice.product.indexOf swap.LightController.productCode) == 0
+            
+            if swapPacket.regId == swap.LightController.Registers.Outputs.id
+                
+                for light in lights
+                    do(light) ->
+                        if light.swapDeviceAddress == packetDevice.address 
+                            light.status = swapPacket.value[light.outputNb]
+                
+                # TODO Add support for multiple lights controller
+                sendToClient swap.MQ.Type.LIGHT_STATUS, swapPacket, packetDevice, foundRegister, [lights]
+                send = true
+                
+            else if swapPacket.regId == swap.LightController.Registers.PressureTemperature.id
+                
+                sendToClient [swap.MQ.Type.PRESSURE, swap.MQ.Type.TEMPERATURE], swapPacket, packetDevice, foundRegister, [getPressure(), getTemperature()]
+                send = true
+            
+        else if (packetDevice.product.indexOf swap.LightSwitch.productCode) == 0
+            
+            if swapPacket.regId == swap.LightSwitch.Registers.Temperature.id
+                
+                sendToClient swap.MQ.Type.TEMPERATURE, swapPacket, packetDevice, foundRegister, [getTemperature()]
+                send = true
+            
+        if !send
+            sendToClient swap.MQ.Type.SWAP_PACKET, swapPacket, packetDevice, foundRegister
+    
+    dbPanstampPacketsPool.addTask dbPanstampPackets.save, swapPacket.time.time, swapPacket, (err, doc) ->
+        logger.error "Save SWAP packet #{swapPacket.time.time} failed: #{JSON.stringify(err)}" if err?
+    
+    swapPackets.splice 0, 0, swapPacket
+    swapPackets.pop() if swapPackets.length > historicLength
+    ss.api.publish.all "swapPacket", swapPacket
+
+
+####################################################################################
+# Update State
+# Publish to SS
+# Publish to MQ 
+####################################################################################
+sendToClient = (topics, swapPacket, swapDevice, swapRegister, customValues) ->
+    i = 0
     
     topics = [topics] if not Array.isArray topics
     
     for topic in topics
         
-        nonce = state.updateState topic, swapPacket.source, swapPacket
+        customValue = i < customValues.length ? customValues[i] : undefined
+        
+        nonce = state.updateState topic, swapPacket.source, swapPacket, customValue
+        
+        ss.api.publish.all topic, customValue
         
         pubSub.publish topic, 
             nonce: nonce
             swapPacket: swapPacket
             swapDevice: swapDevice
             swapRegister: swapRegister
+        
+        i++
 
 
 ####################################################################################
-# Function to call when a packet is received
+# Update dest device for SWAP Packet value
 ####################################################################################
 swapPacketReceived = (swapPacket) ->
     # Add device if not already seen
