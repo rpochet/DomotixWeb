@@ -359,13 +359,13 @@ module.exports = (swapApp) ->
       #$scope.refreshNonce()
     
     # When a serial packet is received
-    ss.event.on 'swapPacket', (sp) ->
+    ss.event.on swap.MQ.Type.SWAP_PACKET, (sp) ->
       $scope.$apply () ->
         $scope.swapPackets.splice(0, 0, sp)
         $scope.swapPackets.pop() if $scope.swapPackets.length > 40
     
     # When a swap event is received
-    ss.event.on 'swapEvent', (se) ->
+    ss.event.on swap.MQ.Type.SWAP_EVENT, (se) ->
       $scope.$apply () ->
         $scope.swapEvents.splice(0, 0, se)
         $scope.swapEvents.pop() if $scope.swapEvents.length > 40

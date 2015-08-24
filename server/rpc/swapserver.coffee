@@ -203,7 +203,7 @@ addSwapEvent = (swapEvent, swapDevice) ->
     
     swapEvents.splice 0, 0, swapEvent
     swapEvents.pop() if swapEvents.length > historicLength
-    ss.api.publish.all "swapEvent", swapEvent
+    ss.api.publish.all swap.MQ.Type.SWAP_EVENT, swapEvent
 
 
 ####################################################################################
@@ -215,7 +215,7 @@ addSwapPacket = (swapPacket, packetDevice, foundRegister) ->
     
     swapPackets.splice 0, 0, swapPacket
     swapPackets.pop() if swapPackets.length > historicLength
-    ss.api.publish.all "swapPacket", swapPacket
+    ss.api.publish.all swap.MQ.Type.SWAP_PACKET, swapPacket
 
 
 ####################################################################################
