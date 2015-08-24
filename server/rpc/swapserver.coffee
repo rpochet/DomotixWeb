@@ -459,13 +459,13 @@ updateEndpointsValue = (swapDevice, swapRegister, swapPacket) ->
     swapRegister.value = if swapPacket.value.length is undefined then [swapPacket.value] else swapPacket.value
     
     if (swapDevice.product.indexOf swap.LightController.productCode) == 0
-        if swapPacket.regId == swap.LightController.swapRegisters.Outputs.id
+        if swapPacket.regId == swap.LightController.Registers.Outputs.id
             for light in lights
                 do(light) ->
                     if light.swapDeviceAddress == swapDevice.address 
                         light.status = swapPacket.value[light.outputNb]
             sendToClient swap.MQ.Type.LIGHT_STATUS, swapPacket, swapDevice, swapRegister
-        else if swapPacket.regId == swap.LightController.swapRegisters.PressureTemperature.id
+        else if swapPacket.regId == swap.LightController.Registers.PressureTemperature.id
             swapRegister.pressure = getPressure()
             sendToClient swap.MQ.Type.PRESSURE, swapPacket, swapDevice, swapRegister
             swapRegister.temperature = getTemperature()
