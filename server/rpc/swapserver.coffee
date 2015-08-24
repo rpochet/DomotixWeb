@@ -230,7 +230,7 @@ sendToClient = (topics, swapPacket, swapDevice, swapRegister, customValues) ->
     
     for topic in topics
         
-        customValue = i < customValues.length ? customValues[i] : undefined
+        customValue = if i < customValues.length then customValues[i] else undefined
         
         nonce = state.updateState topic, swapPacket.source, swapPacket, customValue
         
