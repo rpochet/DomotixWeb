@@ -150,7 +150,7 @@ initSwapPacketsEvents = () ->
 addSwapEvent = (swapEvent, swapDevice) ->
     swapEvent.time = moment().format('YYYY:MM:dd HH:mm:ss.sss')
     
-    dbPanstampEventsPool.addTask dbPanstampEvents.save swapEvent.time, swapEvent, (err, doc) ->
+    dbPanstampEventsPool.addTask dbPanstampEvents.save, swapEvent.time, swapEvent, (err, doc) ->
         logger.error "Save SWAP event #{swapEvent.time} failed: #{JSON.stringify(err)}" if err?
     
     logger.warn "EVENT: #{swapEvent.topic} - #{swapEvent.text} @#{swapEvent.time}" if swapEvent.type is "warn"
@@ -204,7 +204,7 @@ addSwapPacket = (swapPacket, packetDevice, foundRegister) ->
         if !send
             sendToClient swap.MQ.Type.SWAP_PACKET, swapPacket, packetDevice, foundRegister
     
-    dbPanstampPacketsPool.addTask dbPanstampPackets.save swapPacket.time.time, swapPacket, (err, doc) ->
+    dbPanstampPacketsPool.addTask dbPanstampPackets.save, swapPacket.time.time, swapPacket, (err, doc) ->
         logger.error "Save SWAP packet #{swapPacket.time.time} failed: #{JSON.stringify(err)}" if err?
     
     swapPackets.splice 0, 0, swapPacket
@@ -331,7 +331,7 @@ swapPacketReceived = (swapPacket) ->
                     name: "newDevice"
                     text: "New device detected: #{packetDevice.productCode}, #{packetDevice.address}"
                 
-                dbPanstampPool.addTask dbPanstamp.save "DEV" + swap.num2byte(packetDevice.address), packetDevice, (err, doc) ->
+                dbPanstampPool.addTask dbPanstamp.save, "DEV" + swap.num2byte(packetDevice.address), packetDevice, (err, doc) ->
                     return logger.error "Save new device DEV#{swap.num2byte(packetDevice.address)} failed: #{JSON.stringify(err)}" if err?
                     packetDevice._id = doc._id
                     packetDevice._rev = doc._rev
