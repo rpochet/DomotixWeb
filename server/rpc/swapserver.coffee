@@ -207,43 +207,9 @@ addSwapEvent = (swapEvent, swapDevice) ->
 
 
 ####################################################################################
-# Add SWAP Packet to CouchDB and log it
+# Add SWAP Packet to CouchDB
 ####################################################################################
 addSwapPacket = (swapPacket, packetDevice, foundRegister) ->
-    send = false
-    
-    return if packetDevice is undefined
-    
-    if swapPacket.func == swap.Functions.STATUS
-        
-        if (packetDevice.product.indexOf swap.LightController.productCode) == 0
-            
-            if swapPacket.regId == swap.LightController.Registers.Outputs.id
-                
-                for light in lights
-                    do(light) ->
-                        if light.swapDeviceAddress == packetDevice.address 
-                            light.status = swapPacket.value[light.outputNb]
-                
-                # TODO Add support for multiple lights controller
-                sendToClient swap.MQ.Type.LIGHT_STATUS, swapPacket, packetDevice, foundRegister, [lights]
-                send = true
-                
-            else if swapPacket.regId == swap.LightController.Registers.PressureTemperature.id
-                
-                sendToClient [swap.MQ.Type.PRESSURE, swap.MQ.Type.TEMPERATURE], swapPacket, packetDevice, foundRegister, [getPressure(), getTemperature()]
-                send = true
-            
-        else if (packetDevice.product.indexOf swap.LightSwitch.productCode) == 0
-            
-            if swapPacket.regId == swap.LightSwitch.Registers.Temperature.id
-                
-                sendToClient swap.MQ.Type.TEMPERATURE, swapPacket, packetDevice, foundRegister, [getTemperature()]
-                send = true
-            
-        if !send
-            sendToClient swap.MQ.Type.SWAP_PACKET, swapPacket, packetDevice, foundRegister
-    
     dbPanstampPacketsPool.addTask dbPanstampPackets.save, swapPacket.time.time, swapPacket, (err, doc) ->
         logger.error "Save SWAP packet #{swapPacket.time.time} failed: #{JSON.stringify(err)}" if err?
     
@@ -454,7 +420,7 @@ swapPacketReceived = (swapPacket) ->
             foundRegisters = (register for register in packetDevice.configRegisters when register.id == swapPacket.regId)
             if foundRegisters.length == 1
                 foundRegister = foundRegisters[0]
-                updateParamsValue foundRegister, swapPacket
+                updateParamsValue packetDevice, foundRegister, swapPacket
                 addSwapEvent
                     type: "info"
                     topic: "register"
@@ -464,7 +430,7 @@ swapPacketReceived = (swapPacket) ->
                 foundRegisters = (register for register in packetDevice.regularRegisters when register.id == swapPacket.regId)
                 if foundRegisters.length == 1
                     foundRegister = foundRegisters[0]
-                    updateEndpointsValue foundRegister, swapPacket
+                    updateEndpointsValue packetDevice, foundRegister, swapPacket
                     addSwapEvent
                         type: "info"
                         topic: "register"
@@ -481,7 +447,7 @@ swapPacketReceived = (swapPacket) ->
         dbPanstamp.save "DEV" + swap.num2byte(packetDevice.address), packetDevice._rev, packetDevice, (err, res) ->
             return logger.error "Save device DEV#{swap.num2byte(packetDevice.address)}/#{packetDevice._rev} failed: #{JSON.stringify(err)}" if err?
             devices["DEV" + swap.num2byte(packetDevice.address)]._rev = res.rev
-            ss.api.publish.all "devicesUpdated"
+            ss.api.publish.all swap.MQ.Type.SWAP_DEVICE
     
     else if swapPacket.func is swap.Functions.QUERY
         logger.info "Query request received from #{swapPacketsource} for packetDevice #{swapPacketdest} register #{swapPacket.regId}"
@@ -493,14 +459,31 @@ swapPacketReceived = (swapPacket) ->
 ####################################################################################
 #
 ####################################################################################
-updateEndpointsValue = (register, swapPacket) ->
+updateEndpointsValue = (packetDevice, register, swapPacket) ->
     register.time = swapPacket.time
     register.value = if swapPacket.value.length is undefined then [swapPacket.value] else swapPacket.value
+    
+    if (packetDevice.product.indexOf swap.LightController.productCode) == 0
+        if swapPacket.regId == swap.LightController.Registers.Outputs.id
+            for light in lights
+                do(light) ->
+                    if light.swapDeviceAddress == packetDevice.address 
+                        light.status = swapPacket.value[light.outputNb]
+            ss.api.publish.all swap.MQ.Type.LIGHT_STATUS
+        else if swapPacket.regId == swap.LightController.Registers.PressureTemperature.id
+            register.pressure = getPressure()
+            ss.api.publish.all swap.MQ.Type.PRESSURE
+            register.temperature = getTemperature()
+            ss.api.publish.all swap.MQ.Type.TEMPERATURE
+    else if (packetDevice.product.indexOf swap.LightSwitch.productCode) == 0
+        if swapPacket.regId == swap.LightSwitch.Registers.Temperature.id
+            register.temperature = getTemperature()
+            ss.api.publish.all swap.MQ.Type.TEMPERATURE
 
 ####################################################################################
 #
 ####################################################################################
-updateParamsValue = (register, swapPacket) ->
+updateParamsValue = (packetDevice, register, swapPacket) ->
     register.time = swapPacket.time
     register.value = if swapPacket.value.length is undefined then [swapPacket.value] else swapPacket.value
 
