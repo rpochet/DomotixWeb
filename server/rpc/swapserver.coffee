@@ -466,13 +466,12 @@ updateEndpointsValue = (swapDevice, swapRegister, swapPacket) ->
                         light.status = swapPacket.value[light.outputNb]
             sendToClient swap.MQ.Type.LIGHT_STATUS, swapPacket, swapDevice, swapRegister
         else if swapPacket.regId == swap.LightController.Registers.PressureTemperature.id
-            swapRegister.pressure = getPressure()
-            sendToClient swap.MQ.Type.PRESSURE, swapPacket, swapDevice, swapRegister
-            swapRegister.temperature = getTemperature()
-            sendToClient swap.MQ.Type.TEMPERATURE, swapPacket, swapDevice, swapRegister
+            swapRegister.pressure = swap.getPressure swapPacket
+            swapRegister.temperature = swap.getTemperature swapPacket
+            sendToClient [swap.MQ.Type.PRESSURE, swap.MQ.Type.TEMPERATURE], swapPacket, swapDevice, swapRegister
     else if (swapDevice.product.indexOf swap.LightSwitch.productCode) == 0
         if swapPacket.regId == swap.LightSwitch.Registers.Temperature.id
-            swapRegister.temperature = getTemperature()
+            swapRegister.temperature = swap.getTemperature swapPacket
             sendToClient swap.MQ.Type.TEMPERATURE, swapPacket, swapDevice, swapRegister
 
 ####################################################################################
