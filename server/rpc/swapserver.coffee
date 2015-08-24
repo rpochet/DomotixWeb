@@ -602,18 +602,16 @@ exports.actions = (req, res, ss) ->
     
     # For each device, compute pressure in mbar from SWAP Packet
     getPressure: ->
-        results = for device, swapPacket of state.getState swap.MQ.Type.PRESSURE
-            obj = {}
-            obj[device] = swap.getPressure swapPacket
-            obj
+        results = {}
+        for device, swapPacket of state.getState swap.MQ.Type.PRESSURE
+            results[device] = swap.getPressure swapPacket
         res results
     
     # For each device, compute temperature in °C from SWAP Packet
     getTemperature: ->
-        results = for device, swapPacket of state.getState swap.MQ.Type.TEMPERATURE
-            obj = {}
-            obj[device] = swap.getTemperature swapPacket
-            obj
+        results = {}
+        for device, swapPacket of state.getState swap.MQ.Type.TEMPERATURE
+            results[device] = swap.getTemperature swapPacket
         res results
     
     refreshDevices: ->
