@@ -112,7 +112,7 @@ initDevices = () ->
             for level in levels
                 for room in level.rooms
                     devices["DEV" + swap.num2byte(docDevices.value.address)].location.room = room if room.id == docDevices.value.location.room_id
-        ss.api.publish.all "devicesUpdated"
+        ss.api.publish.all swap.MQ.Type.SWAP_DEVICE
 
 ####################################################################################
 #
@@ -291,7 +291,7 @@ swapPacketReceived = (swapPacket) ->
                 
                 # Add to the list before save in DB because packets may be received during saving
                 devices["DEV" + swap.num2byte(packetDevice.address)] = packetDevice
-                ss.api.publish.all "devicesUpdated"
+                ss.api.publish.all swap.MQ.Type.SWAP_DEVICE
                 
                 addSwapEvent
                     type: "warn"
@@ -439,7 +439,7 @@ swapPacketReceived = (swapPacket) ->
                         packetDevice: packetDevice
                     return
         
-        dbPanstamp.save "DEV" + swap.num2byte(packetDevice.address), packetDevice._rev, packetDevice, (err, res) ->
+        dbPanstampPool.addTask dbPanstamp.save, "DEV" + swap.num2byte(packetDevice.address), packetDevice._rev, packetDevice, (err, res) ->
             return logger.error "Save device DEV#{swap.num2byte(packetDevice.address)}/#{packetDevice._rev} failed: #{JSON.stringify(err)}" if err?
             devices["DEV" + swap.num2byte(packetDevice.address)]._rev = res.rev
             ss.api.publish.all swap.MQ.Type.SWAP_DEVICE
