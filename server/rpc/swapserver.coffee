@@ -148,7 +148,7 @@ initSwapPacketsEvents = () ->
 #
 ####################################################################################
 addSwapEvent = (swapEvent, swapDevice) ->
-    swapEvent.time = moment().format()
+    swapEvent.time = moment().format('YYYY:MM:dd HH:mm:ss.sss')
     
     dbPanstampEventsPool.addTask dbPanstampEvents.save swapEvent.time, swapEvent, (err, doc) ->
         logger.error "Save SWAP event #{swapEvent.time} failed: #{JSON.stringify(err)}" if err?
