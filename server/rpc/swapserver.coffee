@@ -221,6 +221,15 @@ addSwapPacket = (swapPacket, swapDevice, swapRegister) ->
 
 
 ####################################################################################
+# Add SWAP Packet to CouchDB
+####################################################################################
+sendBufferedSwapPackets = (swapDevice) ->
+    for swapPacket in state.getState swap.MQ.Type.SWAP_DEVICE[swapDevice._id]
+        sendSwapPacket swapPacket
+        delete swapPacket
+
+
+####################################################################################
 # Update State
 # Publish to SS
 # Publish to MQ 
@@ -332,31 +341,37 @@ swapPacketReceived = (swapPacket) ->
         
         if swapPacket.regId is swap.Registers.productCode.id
             # Nothing special to do 
+            
         else if swapPacket.regId is swap.Registers.state.id
             packetDevice.systemState = swap.SwapStates.get value
-            addSwapEvent
-                type: "info"
-                topic: "systemState"
-                text: "(#{packetDevice._id}): State changed to #{packetDevice.systemState.str}"
-                packetDevice: packetDevice
+            if not packetDevice.pwrdownmode
+                addSwapEvent
+                    type: "info"
+                    topic: "systemState"
+                    text: "(#{packetDevice._id}): State changed to #{packetDevice.systemState.str}"
+                    packetDevice: packetDevice
+            else
+                sendBufferedSwapPackets packetDevice
             
             packetDevice.systemState = packetDevice.systemState.level
         
         else if swapPacket.regId is swap.Registers.channel.id
-            packetDevice.frequencyChannel = value[0]
-            addSwapEvent
-                type: "warn"
-                topic: "frequencyChannel"
-                text: "(#{packetDevice._id}): Channel changed to #{packetDevice.frequencyChannel}"
-                packetDevice: packetDevice
+            if packetDevice.frequencyChannel != value[0]
+                packetDevice.frequencyChannel = value[0]
+                addSwapEvent
+                    type: "warn"
+                    topic: "frequencyChannel"
+                    text: "(#{packetDevice._id}): Channel changed to #{packetDevice.frequencyChannel}"
+                    packetDevice: packetDevice
         
         else if swapPacket.regId is swap.Registers.security.id
-            packetDevice.securityOption = value[0]
-            addSwapEvent
-                type: "info"
-                topic: "securityOption"
-                text: "(#{packetDevice._id}): Security changed to #{packetDevice.securityOption}"
-                packetDevice: packetDevice
+            if packetDevice.securityOption = value[0]
+                packetDevice.securityOption = value[0]
+                addSwapEvent
+                    type: "info"
+                    topic: "securityOption"
+                    text: "(#{packetDevice._id}): Security changed to #{packetDevice.securityOption}"
+                    packetDevice: packetDevice
         
         else if swapPacket.regId is swap.Registers.password.id
             packetDevice.securityPassword = (swap.num2byte(v) for v in value).join("")
@@ -366,22 +381,15 @@ swapPacketReceived = (swapPacket) ->
                 text: "(#{packetDevice._id}): Password changed"
                 packetDevice: packetDevice
         
-        else if swapPacket.regId is swap.Registers.nonce.id
-            packetDevice.securityNonce = value[0]
-            addSwapEvent
-                type: "info"
-                topic: "securityNonce"
-                text: "(#{packetDevice._id}): Nonce received to #{packetDevice.securityNonce}"
-                packetDevice:packetDevice
-        
         else if swapPacket.regId is swap.Registers.network.id
             value = 256 * value[0] + value[1]
-            packetDevice.networkId = value
-            addSwapEvent
-                type: "info"
-                topic: "network"
-                text: "(#{packetDevice._id}): Network changed to #{value}"
-                packetDevice: packetDevice
+            if packetDevice.networkId != value
+                packetDevice.networkId = value
+                addSwapEvent
+                    type: "info"
+                    topic: "network"
+                    text: "(#{packetDevice._id}): Network changed to #{value}"
+                    packetDevice: packetDevice
         
         else if swapPacket.regId is swap.Registers.address.id
             newAddress = value[0]
