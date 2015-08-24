@@ -132,7 +132,7 @@ initSwapPacketsEvents = () ->
             return logger.error "Get view domotix/lastPackets failed: #{JSON.stringify(err)}" if err?
             for row in res.rows
                 swapPackets.push row.value
-            ss.api.publish.all "swapPacket"
+            ss.api.publish.all swap.MQ.Type.SWAP_PACKET
     
     dbPanstampEvents.view "domotix/lastEvents", 
         limit: historicLength
@@ -141,7 +141,7 @@ initSwapPacketsEvents = () ->
             return logger.error "Get view domotix/lastEvents failed: #{JSON.stringify(err)}" if err?
             for row in res.rows
                 swapEvents.push row.value
-            ss.api.publish.all "swapEvent"
+            ss.api.publish.all swap.MQ.Type.SWAP_EVENT
 
 
 ####################################################################################
