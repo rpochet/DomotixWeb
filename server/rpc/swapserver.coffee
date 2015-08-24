@@ -185,11 +185,13 @@ addSwapPacket = (swapPacket, packetDevice, foundRegister) ->
                 
                 ss.api.publish.all "lightStatusUpdated", state.getState swap.MQ.Type.LIGHT_STATUS
                 send = true
+                
             else if swapPacket.regId == swap.LightController.Registers.PressureTemperature.id
                 
                 sendToClient [swap.MQ.Type.PRESSURE, swap.MQ.Type.TEMPERATURE], swapPacket, packetDevice, foundRegister
                 
-                ss.api.publish.all "temperatureUpdated", state.getState swap.MQ.Type.TEMPERATURE
+                ss.api.publish.all "temperatureUpdated", getTemperature
+                ss.api.publish.all "pressureUpdated", getPressure
                 send = true
             
         else if (packetDevice.product.indexOf swap.LightSwitch.productCode) == 0
@@ -198,7 +200,7 @@ addSwapPacket = (swapPacket, packetDevice, foundRegister) ->
                 
                 sendToClient swap.MQ.Type.TEMPERATURE, swapPacket, packetDevice, foundRegister
                 
-                ss.api.publish.all "temperatureUpdated", state.getState swap.MQ.Type.TEMPERATURE
+                ss.api.publish.all "temperatureUpdated", getTemperature
                 send = true
             
         if !send

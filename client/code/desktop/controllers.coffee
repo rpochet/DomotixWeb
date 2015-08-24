@@ -407,13 +407,11 @@ module.exports = (swapApp) ->
     
     ss.event.on 'temperatureUpdated', (temperature) ->
       $scope.$apply () ->
-          $scope.temperature = swap.getTemperature(temperature)
-          $scope.pressure = swap.getTemperature(temperature)
+          $scope.temperature = temperature
     
     ss.event.on 'pressureUpdated', (pressure) ->
       $scope.$apply () ->
-          $scope.temperature = swap.getTemperature(pressure)
-          $scope.pressure = swap.getTemperature(pressure)
+          $scope.pressure = pressure
     
     ss.event.on 'lightStatusUpdated', (lightStatus) ->
       $scope.$apply () ->
