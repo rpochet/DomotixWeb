@@ -78,7 +78,7 @@ module.exports = (swapApp) ->
     $scope.refreshState = () ->
       ss.rpc 'swapserver.refreshState'
     
-    ss.event.on 'devicesUpdated', () ->
+    ss.event.on swap.MQ.Type.SWAP_DEVICE, () ->
       ss.rpc 'swapserver.getDevices', (devices) ->
         $scope.$apply () ->
           $scope.devices = devices
@@ -145,7 +145,7 @@ module.exports = (swapApp) ->
       ss.rpc 'swapserver.getLevels', (levels) ->
         $scope.levels = levels
     
-    ss.event.on 'devicesUpdated', () ->
+    ss.event.on swap.MQ.Type.SWAP_DEVICE, () ->
       ss.rpc 'swapserver.getDevices', (devices) ->
         $scope.$apply () ->
           $scope.devices = devices
@@ -410,15 +410,15 @@ module.exports = (swapApp) ->
       else 
         return 'url(#g2)';
         
-    ss.event.on 'devicesUpdated', () ->
+    ss.event.on swap.MQ.Type.SWAP_DEVICE, () ->
       ss.rpc 'swapserver.getDevices', (devices) ->
         $scope.$apply () ->
           $scope.devices = devices
     
-    ss.event.on 'temperatureUpdated', (temperature) ->
+    ss.event.on swap.MQ.Type.TEMPERATURE, (temperature) ->
       displayTemperature temperature
     
-    ss.event.on 'pressureUpdated', (pressure) ->
+    ss.event.on swap.MQ.Type.PRESSURE, (pressure) ->
       displayPressure pressure
     
     ss.event.on 'lightStatusUpdated', (lightStatus) ->
@@ -555,7 +555,7 @@ module.exports = (swapApp) ->
         $scope.$apply () ->
           $scope.devices = devices
       
-    ss.event.on 'devicesUpdated', () ->
+    ss.event.on swap.MQ.Type.SWAP_DEVICE, () ->
       ss.rpc 'swapserver.getDevices', (devices) ->
         $scope.$apply () ->
           $scope.devices = devices
