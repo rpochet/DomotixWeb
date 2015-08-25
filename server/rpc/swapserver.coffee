@@ -108,10 +108,12 @@ initDevices = () ->
     devices = {}
     dbPanstamp.view "domotix/devices", { }, (err, doc) ->
         for docDevices in doc
-            devices["DEV" + swap.num2byte(docDevices.value.address)] = docDevices.value
+            devId = "DEV" + swap.num2byte(docDevices.value.address)
+            devices[devId] = docDevices.value
+            logger.info"Got device #{devId} with rev #{docDevices.value._rev}"
             for level in levels
                 for room in level.rooms
-                    devices["DEV" + swap.num2byte(docDevices.value.address)].location.room = room if room.id == docDevices.value.location.room_id
+                    devices[devId].location.room = room if room.id == docDevices.value.location.room_id
         ss.api.publish.all swap.MQ.Type.SWAP_DEVICE
 
 ####################################################################################
@@ -325,7 +327,6 @@ swapPacketReceived = (swapPacket) ->
                     return logger.error "Save new device DEV#{swap.num2byte(swapDevice.address)} failed: #{JSON.stringify(err)}" if err?
                     swapDevice._id = doc._id
                     swapDevice._rev = doc._rev
-                    #devices[doc._id] = swapDevice
                     addSwapEvent
                         type: "info"
                         name: "newSwapswapDeviceDetected"
@@ -407,7 +408,7 @@ swapPacketReceived = (swapPacket) ->
             newAddress = value[0]
             oldAddress = swapDevice.address
             if oldAddress != newAddress  # may be due a QUERY request
-                dbPanstamp.save "DEV" + swap.num2byte(newAddress), swapDevice, (err, doc) ->
+                dbPanstampPool.addTask dbPanstamp.save, "DEV" + swap.num2byte(newAddress), swapDevice, (err, doc) ->
                     return logger.error "Save device DEV#{swap.num2byte(newAddress)} failed: #{JSON.stringify(err)}" if err?
                     devices["DEV" + swap.num2byte(newAddress)] = swapDevice
                     addSwapEvent
@@ -461,9 +462,11 @@ swapPacketReceived = (swapPacket) ->
                         swapDevice: swapDevice
                     return
         
+        logger.debug "Saving device #{swapDevice.address} with rev #{swapDevice._rev}"
         dbPanstampPool.addTask dbPanstamp.save, "DEV" + swap.num2byte(swapDevice.address), swapDevice._rev, swapDevice, (err, res) ->
             return logger.error "Save device DEV#{swap.num2byte(swapDevice.address)}/#{swapDevice._rev} failed: #{JSON.stringify(err)}" if err?
             devices["DEV" + swap.num2byte(swapDevice.address)]._rev = res.rev
+            logger.debug "Device #{swapDevice.address} saved, new rev is #{swapDevice._rev}"
             ss.api.publish.all swap.MQ.Type.SWAP_DEVICE
     
     else if swapPacket.func is swap.Functions.QUERY
@@ -631,7 +634,7 @@ exports.actions = (req, res, ss) ->
         # TODO: handle device update...
         if onUpdateDevice oldDevice, newDevice
           cid = "DEV" + swap.num2byte newDevice.address
-          dbPanstamp.save cid, devices[cid]._rev, newDevice, (err, res) ->
+          dbPanstampPool.addTask dbPanstamp.save, cid, devices[cid]._rev, newDevice, (err, res) ->
               return logger.error "Save device #{cid}/#{devices[cid]._rev} failed: #{JSON.stringify(err)}" if err?
               newDevice._rev = res.rev
               devices[cid] = newDevice
