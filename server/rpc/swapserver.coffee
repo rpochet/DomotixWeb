@@ -224,7 +224,10 @@ addSwapPacket = (swapPacket, swapDevice, swapRegister) ->
 # Add SWAP Packet in queue for a SWAP Device
 ####################################################################################
 addSwapPacketInQueue = (swapDevice, swapPacket) ->
-    state.updateState swap.MQ.Type.SWAP_DEVICE, swapDevice._id, swapPacket
+    queuedSwapPackets = state.getState(swap.MQ.Type.SWAP_DEVICE)[swapDevice._id]
+    queuedSwapPackets = new Array() if not queuedSwapPackets
+    queuedSwapPackets.push swapPacket
+    state.updateState swap.MQ.Type.SWAP_DEVICE, swapDevice._id, queuedSwapPackets
 
 
 ####################################################################################
@@ -232,6 +235,7 @@ addSwapPacketInQueue = (swapDevice, swapPacket) ->
 ####################################################################################
 sendQueuedSwapPackets = (swapDevice) ->
     queuedSwapPackets = state.getState(swap.MQ.Type.SWAP_DEVICE)[swapDevice._id]
+    return if not queuedSwapPackets
     while (queuedSwapPacket = queuedSwapPackets.shift) != null
         sendSwapPacket queuedSwapPackets
 
