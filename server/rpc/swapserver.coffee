@@ -110,7 +110,7 @@ initDevices = () ->
         for docDevices in doc
             devId = "DEV" + swap.num2byte(docDevices.value.address)
             devices[devId] = docDevices.value
-            logger.info"Got device #{devId} with rev #{docDevices.value._rev}"
+            logger.info "Got device #{devId} with rev #{docDevices.value._rev}"
             for level in levels
                 for room in level.rooms
                     devices[devId].location.room = room if room.id == docDevices.value.location.room_id
