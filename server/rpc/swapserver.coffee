@@ -481,7 +481,7 @@ swapPacketReceived = (swapPacket) ->
     
 saveSwapDevice = (swapDevice) ->
     logger.debug "Saving device #{swapDevice.address} with rev #{swapDevice._rev}"
-    dbPanstamp.save, "DEV" + swap.num2byte(swapDevice.address), swapDevice._rev, swapDevice, (err, res) ->
+    dbPanstamp.save "DEV" + swap.num2byte(swapDevice.address), swapDevice._rev, swapDevice, (err, res) ->
         return logger.error "Save device DEV#{swap.num2byte(swapDevice.address)}/#{swapDevice._rev} failed: #{JSON.stringify(err)}" if err?
         devices["DEV" + swap.num2byte(swapDevice.address)]._rev = res.rev
         logger.debug "Device #{swapDevice.address} saved, new rev is #{swapDevice._rev}"
