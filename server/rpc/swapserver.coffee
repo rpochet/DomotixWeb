@@ -462,12 +462,14 @@ swapPacketReceived = (swapPacket) ->
                         swapDevice: swapDevice
                     return
         
-        logger.debug "Saving device #{swapDevice.address} with rev #{swapDevice._rev}"
-        dbPanstampPool.addTask dbPanstamp.save, "DEV" + swap.num2byte(swapDevice.address), swapDevice._rev, swapDevice, (err, res) ->
-            return logger.error "Save device DEV#{swap.num2byte(swapDevice.address)}/#{swapDevice._rev} failed: #{JSON.stringify(err)}" if err?
-            devices["DEV" + swap.num2byte(swapDevice.address)]._rev = res.rev
-            logger.debug "Device #{swapDevice.address} saved, new rev is #{swapDevice._rev}"
-            ss.api.publish.all swap.MQ.Type.SWAP_DEVICE
+        dbPanstampPool.addTask saveSwapDevice, swapDevice
+        
+        #logger.debug "Saving device #{swapDevice.address} with rev #{swapDevice._rev}"
+        #dbPanstampPool.addTask dbPanstamp.save, "DEV" + swap.num2byte(swapDevice.address), swapDevice._rev, swapDevice, (err, res) ->
+        #    return logger.error "Save device DEV#{swap.num2byte(swapDevice.address)}/#{swapDevice._rev} failed: #{JSON.stringify(err)}" if err?
+        #    devices["DEV" + swap.num2byte(swapDevice.address)]._rev = res.rev
+        #    logger.debug "Device #{swapDevice.address} saved, new rev is #{swapDevice._rev}"
+        #    ss.api.publish.all swap.MQ.Type.SWAP_DEVICE
     
     else if swapPacket.func is swap.Functions.QUERY
         logger.info "Query request received from #{swapPacketsource} for swapDevice #{swapPacketdest} register #{swapPacket.regId}"
@@ -475,6 +477,15 @@ swapPacketReceived = (swapPacket) ->
         logger.info "Command request received from #{swapPacketsource} for swapDevice #{swapPacket.dest} register #{swapPacket.regId} with value #{swapPacket.value}"
     
     addSwapPacket swapPacket, swapDevice, foundRegister
+    
+    
+saveSwapDevice = (swapDevice) ->
+    logger.debug "Saving device #{swapDevice.address} with rev #{swapDevice._rev}"
+    dbPanstamp.save, "DEV" + swap.num2byte(swapDevice.address), swapDevice._rev, swapDevice, (err, res) ->
+        return logger.error "Save device DEV#{swap.num2byte(swapDevice.address)}/#{swapDevice._rev} failed: #{JSON.stringify(err)}" if err?
+        devices["DEV" + swap.num2byte(swapDevice.address)]._rev = res.rev
+        logger.debug "Device #{swapDevice.address} saved, new rev is #{swapDevice._rev}"
+        ss.api.publish.all swap.MQ.Type.SWAP_DEVICE
     
 ####################################################################################
 #
