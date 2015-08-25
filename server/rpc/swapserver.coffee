@@ -221,9 +221,16 @@ addSwapPacket = (swapPacket, swapDevice, swapRegister) ->
 
 
 ####################################################################################
-# Add SWAP Packet to CouchDB
+# Add SWAP Packet in queue for a SWAP Device
 ####################################################################################
-sendBufferedSwapPackets = (swapDevice) ->
+addSwapPacketInQueue = (swapDevice, swapPacket) ->
+    state.updateState swap.MQ.Type.SWAP_DEVICE, swapDevice._id, swapPacket
+
+
+####################################################################################
+# Sent queued SWAP Packet to SWAP Device
+####################################################################################
+sendQueuedSwapPackets = (swapDevice) ->
     for swapPacket in state.getState swap.MQ.Type.SWAP_DEVICE[swapDevice._id]
         sendSwapPacket swapPacket
         delete swapPacket
@@ -256,13 +263,14 @@ sendToClient = (topics, swapPacket, swapDevice, swapRegister) ->
 ####################################################################################
 swapPacketReceived = (swapPacket) ->
     # Add device if not already seen
-    packetDevice = undefined
+    swapDevice = undefined
     
+    # Search for SWAP DEvice or create a new one if needed
     if ("DEV" + swap.num2byte(swapPacket.source)) not of devices
         text =  "Packet received from unknown source: #{swapPacket.source}"
         addSwapEvent
             type: "warn"
-            topic: "unknownSwapPacketDevice"
+            topic: "unknownSwapswapDevice"
             text: text
         
         if swapPacket.func is swap.Functions.STATUS
@@ -282,14 +290,14 @@ swapPacketReceived = (swapPacket) ->
                     topic: "unknownDevice"
                     text: "Unknown device or manufacturer Id detected: #{productCode}"
             else
-                packetDevice = devicesConfig[productCode]
-                packetDevice.address = swapPacket.source
-                packetDevice.networkId = Config.network.networkId
-                packetDevice.frequencyChannel = Config.network.frequencyChannel
-                packetDevice.product = productCode
-                packetDevice.securityNonce = swapPacket.nonce
-                packetDevice.lastStatusTime = swapPacket.time
-                packetDevice.location =
+                swapDevice = devicesConfig[productCode]
+                swapDevice.address = swapPacket.source
+                swapDevice.networkId = Config.network.networkId
+                swapDevice.frequencyChannel = Config.network.frequencyChannel
+                swapDevice.product = productCode
+                swapDevice.securityNonce = swapPacket.nonce
+                swapDevice.lastStatusTime = swapPacket.time
+                swapDevice.location =
                     room_id: -1
                     x: 0
                     dx: 0
@@ -297,112 +305,112 @@ swapPacketReceived = (swapPacket) ->
                     dy: 0
                     z: 0
                     dz: 0
-                delete packetDevice._id
-                delete packetDevice._rev
+                delete swapDevice._id
+                delete swapDevice._rev
                 
                 # Add to the list before save in DB because packets may be received during saving
-                devices["DEV" + swap.num2byte(packetDevice.address)] = packetDevice
+                devices["DEV" + swap.num2byte(swapDevice.address)] = swapDevice
                 ss.api.publish.all swap.MQ.Type.SWAP_DEVICE
                 
                 addSwapEvent
                     type: "warn"
                     name: "newDevice"
-                    text: "New device detected: #{packetDevice.productCode}, #{packetDevice.address}"
+                    text: "New device detected: #{swapDevice.productCode}, #{swapDevice.address}"
                 
-                dbPanstampPool.addTask dbPanstamp.save, "DEV" + swap.num2byte(packetDevice.address), packetDevice, (err, doc) ->
-                    return logger.error "Save new device DEV#{swap.num2byte(packetDevice.address)} failed: #{JSON.stringify(err)}" if err?
-                    packetDevice._id = doc._id
-                    packetDevice._rev = doc._rev
-                    #devices[doc._id] = packetDevice
+                dbPanstampPool.addTask dbPanstamp.save, "DEV" + swap.num2byte(swapDevice.address), swapDevice, (err, doc) ->
+                    return logger.error "Save new device DEV#{swap.num2byte(swapDevice.address)} failed: #{JSON.stringify(err)}" if err?
+                    swapDevice._id = doc._id
+                    swapDevice._rev = doc._rev
+                    #devices[doc._id] = swapDevice
                     addSwapEvent
                         type: "info"
-                        name: "newSwapPacketDeviceDetected"
-                        text: "New packetDevice #{packetDevice.address} added: #{packetDevice.product.productCode} - #{devicesConfig[productCode].product} (#{devicesConfig[productCode].developer})"
-                        packetDevice: packetDevice
+                        name: "newSwapswapDeviceDetected"
+                        text: "New swapDevice #{swapDevice.address} added: #{swapDevice.product.productCode} - #{devicesConfig[productCode].product} (#{devicesConfig[productCode].developer})"
+                        swapDevice: swapDevice
                 
         return
     else
-        packetDevice = devices["DEV" + swap.num2byte(swapPacket.source)]
+        swapDevice = devices["DEV" + swap.num2byte(swapPacket.source)]
     
     # Handles STATUS packets
     if swapPacket.func is swap.Functions.STATUS
         value = swapPacket.value
         
         # handles missing packets ??
-        if not Math.abs(packetDevice.securityNonce - swapPacket.nonce) in [1,255]
+        if not Math.abs(swapDevice.securityNonce - swapPacket.nonce) in [1,255]
             addSwapEvent
                 type: "warn"
                 name: "missingNonce"
-                text: "(#{packetDevice._id}): Missing nonce: got #{swapPacket.nonce} - expected #{packetDevice.securityNonce}"
-                packetDevice: packetDevice
+                text: "(#{swapDevice._id}): Missing nonce: got #{swapPacket.nonce} - expected #{swapDevice.securityNonce}"
+                swapDevice: swapDevice
         
-        packetDevice.securityNonce = swapPacket.nonce
-        packetDevice.lastStatusTime = swapPacket.time
+        swapDevice.securityNonce = swapPacket.nonce
+        swapDevice.lastStatusTime = swapPacket.time
         
         if swapPacket.regId is swap.Registers.productCode.id
             # Nothing special to do 
             
         else if swapPacket.regId is swap.Registers.state.id
-            packetDevice.systemState = swap.SwapStates.get value
-            if not packetDevice.pwrdownmode
+            swapDevice.systemState = swap.SwapStates.get value
+            swapDevice.systemState = swapDevice.systemState.level
+            
+            if swapDevice.pwrdownmode
+                sendQueuedSwapPackets swapDevice
+            else
                 addSwapEvent
                     type: "info"
                     topic: "systemState"
-                    text: "(#{packetDevice._id}): State changed to #{packetDevice.systemState.str}"
-                    packetDevice: packetDevice
-            else
-                sendBufferedSwapPackets packetDevice
-            
-            packetDevice.systemState = packetDevice.systemState.level
+                    text: "(#{swapDevice._id}): State changed to #{swapDevice.systemState.str}"
+                    swapDevice: swapDevice
         
         else if swapPacket.regId is swap.Registers.channel.id
-            if packetDevice.frequencyChannel != value[0]
-                packetDevice.frequencyChannel = value[0]
+            if swapDevice.frequencyChannel != value[0]
+                swapDevice.frequencyChannel = value[0]
                 addSwapEvent
                     type: "warn"
                     topic: "frequencyChannel"
-                    text: "(#{packetDevice._id}): Channel changed to #{packetDevice.frequencyChannel}"
-                    packetDevice: packetDevice
+                    text: "(#{swapDevice._id}): Channel changed to #{swapDevice.frequencyChannel}"
+                    swapDevice: swapDevice
         
         else if swapPacket.regId is swap.Registers.security.id
-            if packetDevice.securityOption = value[0]
-                packetDevice.securityOption = value[0]
+            if swapDevice.securityOption = value[0]
+                swapDevice.securityOption = value[0]
                 addSwapEvent
                     type: "info"
                     topic: "securityOption"
-                    text: "(#{packetDevice._id}): Security changed to #{packetDevice.securityOption}"
-                    packetDevice: packetDevice
+                    text: "(#{swapDevice._id}): Security changed to #{swapDevice.securityOption}"
+                    swapDevice: swapDevice
         
         else if swapPacket.regId is swap.Registers.password.id
-            packetDevice.securityPassword = (swap.num2byte(v) for v in value).join("")
+            swapDevice.securityPassword = (swap.num2byte(v) for v in value).join("")
             addSwapEvent
                 type: "info"
                 topic: "securityPassword"
-                text: "(#{packetDevice._id}): Password changed"
-                packetDevice: packetDevice
+                text: "(#{swapDevice._id}): Password changed"
+                swapDevice: swapDevice
         
         else if swapPacket.regId is swap.Registers.network.id
             value = 256 * value[0] + value[1]
-            if packetDevice.networkId != value
-                packetDevice.networkId = value
+            if swapDevice.networkId != value
+                swapDevice.networkId = value
                 addSwapEvent
                     type: "info"
                     topic: "network"
-                    text: "(#{packetDevice._id}): Network changed to #{value}"
-                    packetDevice: packetDevice
+                    text: "(#{swapDevice._id}): Network changed to #{value}"
+                    swapDevice: swapDevice
         
         else if swapPacket.regId is swap.Registers.address.id
             newAddress = value[0]
-            oldAddress = packetDevice.address
+            oldAddress = swapDevice.address
             if oldAddress != newAddress  # may be due a QUERY request
-                dbPanstamp.save "DEV" + swap.num2byte(newAddress), packetDevice, (err, doc) ->
+                dbPanstamp.save "DEV" + swap.num2byte(newAddress), swapDevice, (err, doc) ->
                     return logger.error "Save device DEV#{swap.num2byte(newAddress)} failed: #{JSON.stringify(err)}" if err?
-                    devices["DEV" + swap.num2byte(newAddress)] = packetDevice
+                    devices["DEV" + swap.num2byte(newAddress)] = swapDevice
                     addSwapEvent
                         type: "info"
                         topic: "address"
-                        text: "(#{packetDevice._id}): Address changed from #{oldAddress} to #{newAddress}"
-                        packetDevice: packetDevice
+                        text: "(#{swapDevice._id}): Address changed from #{oldAddress} to #{newAddress}"
+                        swapDevice: swapDevice
                         oldAddress: oldAddress
                     
                     cid = "DEV" + swap.num2byte(oldAddress)
@@ -413,53 +421,53 @@ swapPacketReceived = (swapPacket) ->
         
         else if swapPacket.regId is swap.Registers.txInterval.id
             value = 256 * value[0] + value[1]
-            packetDevice.txInterval = value
+            swapDevice.txInterval = value
             addSwapEvent
                 type: "info"
                 topic: "txInterval"
-                text: "(#{packetDevice._id}): Transmit interval changed to #{value}"
-                packetDevice: packetDevice
+                text: "(#{swapDevice._id}): Transmit interval changed to #{value}"
+                swapDevice: swapDevice
         
         # Retrieve value from endpoints definition
         else
-            foundRegisters = (register for register in packetDevice.configRegisters when register.id == swapPacket.regId)
+            foundRegisters = (register for register in swapDevice.configRegisters when register.id == swapPacket.regId)
             if foundRegisters.length == 1
                 foundRegister = foundRegisters[0]
-                updateParamsValue packetDevice, foundRegister, swapPacket
+                updateParamsValue swapDevice, foundRegister, swapPacket
                 addSwapEvent
                     type: "info"
                     topic: "register"
-                    text: "(#{packetDevice._id}): Register #{foundRegister.name} changed to #{value}"
-                    packetDevice: packetDevice
+                    text: "(#{swapDevice._id}): Register #{foundRegister.name} changed to #{value}"
+                    swapDevice: swapDevice
             else
-                foundRegisters = (register for register in packetDevice.regularRegisters when register.id == swapPacket.regId)
+                foundRegisters = (register for register in swapDevice.regularRegisters when register.id == swapPacket.regId)
                 if foundRegisters.length == 1
                     foundRegister = foundRegisters[0]
-                    updateEndpointsValue packetDevice, foundRegister, swapPacket
+                    updateEndpointsValue swapDevice, foundRegister, swapPacket
                     addSwapEvent
                         type: "info"
                         topic: "register"
-                        text: "(#{packetDevice._id}): Register #{foundRegister.name} changed to #{value}"
-                        packetDevice: packetDevice
+                        text: "(#{swapDevice._id}): Register #{foundRegister.name} changed to #{value}"
+                        swapDevice: swapDevice
                 else
                     addSwapEvent
                         type: "warn"
                         topic: "register"
-                        text: "(#{packetDevice._id}): Unknown register #{swapPacket.regId}"
-                        packetDevice: packetDevice
+                        text: "(#{swapDevice._id}): Unknown register #{swapPacket.regId}"
+                        swapDevice: swapDevice
                     return
         
-        dbPanstampPool.addTask dbPanstamp.save, "DEV" + swap.num2byte(packetDevice.address), packetDevice._rev, packetDevice, (err, res) ->
-            return logger.error "Save device DEV#{swap.num2byte(packetDevice.address)}/#{packetDevice._rev} failed: #{JSON.stringify(err)}" if err?
-            devices["DEV" + swap.num2byte(packetDevice.address)]._rev = res.rev
+        dbPanstampPool.addTask dbPanstamp.save, "DEV" + swap.num2byte(swapDevice.address), swapDevice._rev, swapDevice, (err, res) ->
+            return logger.error "Save device DEV#{swap.num2byte(swapDevice.address)}/#{swapDevice._rev} failed: #{JSON.stringify(err)}" if err?
+            devices["DEV" + swap.num2byte(swapDevice.address)]._rev = res.rev
             ss.api.publish.all swap.MQ.Type.SWAP_DEVICE
     
     else if swapPacket.func is swap.Functions.QUERY
-        logger.info "Query request received from #{swapPacketsource} for packetDevice #{swapPacketdest} register #{swapPacket.regId}"
+        logger.info "Query request received from #{swapPacketsource} for swapDevice #{swapPacketdest} register #{swapPacket.regId}"
     else if swapPacket.func is swap.Functions.COMMAND
-        logger.info "Command request received from #{swapPacketsource} for packetDevice #{swapPacket.dest} register #{swapPacket.regId} with value #{swapPacket.value}"
+        logger.info "Command request received from #{swapPacketsource} for swapDevice #{swapPacket.dest} register #{swapPacket.regId} with value #{swapPacket.value}"
     
-    addSwapPacket swapPacket, packetDevice, foundRegister
+    addSwapPacket swapPacket, swapDevice, foundRegister
     
 ####################################################################################
 #
@@ -487,9 +495,10 @@ updateEndpointsValue = (swapDevice, swapRegister, swapPacket) ->
 ####################################################################################
 #
 ####################################################################################
-updateParamsValue = (packetDevice, swapRegister, swapPacket) ->
+updateParamsValue = (swapDevice, swapRegister, swapPacket) ->
     swapRegister.time = swapPacket.time
     swapRegister.value = if swapPacket.value.length is undefined then [swapPacket.value] else swapPacket.value
+
 
 ####################################################################################
 # Return TRUE if device must be saved in DB
@@ -504,31 +513,20 @@ onUpdateDevice = (oldDevice, newDevice) ->
     else
         return false
 
+
 ####################################################################################
 # Gets the value of a specific register
 ####################################################################################
 sendSwapQuery = (address, registerId) ->
-    swapPacket = new swap.SwapPacket()
-    swapPacket.source = Config.network.address
-    swapPacket.dest = address
-    swapPacket.func = swap.Functions.QUERY
-    swapPacket.regAddress = address
-    swapPacket.regId = registerId
-    serial.send swapPacket
-    addSwapPacket swapPacket
+    sendSwapPacket swap.Functions.QUERY, address, registerId, value
+
 
 ####################################################################################
 # Sets the value of a specific register
 ####################################################################################
 sendSwapCommand = (address, registerId, value) ->
-    swapPacket = new swap.SwapPacket()
-    swapPacket.source = Config.network.address
-    swapPacket.dest = address
-    swapPacket.func = swap.Functions.COMMAND
-    swapPacket.regAddress = address
-    swapPacket.regId = registerId
-    serial.send swapPacket
-    addSwapPacket swapPacket
+    sendSwapPacket swap.Functions.COMMAND, address, registerId, value
+
 
 ####################################################################################
 # Send a generic swap packet
@@ -541,14 +539,20 @@ sendSwapPacket = (functionCode, address, registerId, value) ->
     swapPacket.regAddress = address
     swapPacket.regId = registerId
     swapPacket.value = value
-    serial.send swapPacket
-    addSwapPacket swapPacket
+    
+    if swapDevice.pwrdownmode
+        addSwapPacketInQueue swapDevice, swapPacket
+    else
+        serial.send swapPacket
+        addSwapPacket swapPacket
+
 
 ####################################################################################
 #
 ####################################################################################
 destroy = () ->
     pubSub.destroy
+
 
 ####################################################################################
 # CLIENT SERVICES

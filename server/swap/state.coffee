@@ -3,7 +3,6 @@ cradle = require "cradle"
 swap = require "../../client/code/common/swap"
 logger = require("log4js").getLogger(__filename.split("/").pop(-1).split(".")[0])
 moment = require "moment"
-Q = require "q"
 poolr  = require("poolr").createPool
 
 ###############################################################
