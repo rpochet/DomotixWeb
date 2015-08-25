@@ -231,9 +231,9 @@ addSwapPacketInQueue = (swapDevice, swapPacket) ->
 # Sent queued SWAP Packet to SWAP Device
 ####################################################################################
 sendQueuedSwapPackets = (swapDevice) ->
-    for swapPacket in state.getState swap.MQ.Type.SWAP_DEVICE[swapDevice._id]
-        sendSwapPacket swapPacket
-        delete swapPacket
+    queuedSwapPackets = state.getState(swap.MQ.Type.SWAP_DEVICE)[swapDevice._id]
+    while (queuedSwapPacket = queuedSwapPackets.shift) != null
+        sendSwapPacket queuedSwapPackets
 
 
 ####################################################################################
