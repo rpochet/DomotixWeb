@@ -258,7 +258,7 @@ sendQueuedSwapPackets = (swapDevice) ->
         serial.send swapPacket
         addSwapPacket swapPacket
     
-    state.updateState swap.MQ.Type.SWAP_DEVICE, swapDevice._id, queuedSwapPackets
+    state.updateState swap.MQ.Type.SWAP_DEVICE, swapDevice._id, new Array()
 
 
 ####################################################################################
@@ -380,14 +380,14 @@ swapPacketReceived = (swapPacket) ->
         else if swapPacket.regId is swap.Registers.state.id
             swapDevice.systemState = swap.SwapStates.get(value).level
             
-            if swapDevice.pwrdownmode && swapDevice.systemState is swap.SwapStates.RXON.level
+            if swapDevice.pwrdownmode
                 saveChanges = false
-                sendQueuedSwapPackets swapDevice
+                sendQueuedSwapPackets swapDevice if swapDevice.systemState is swap.SwapStates.RXON.level
             else
                 addSwapEvent
                     type: "info"
                     topic: "systemState"
-                    text: "(#{swapDevice._id}): State changed to #{swapDevice.systemState.str}"
+                    text: "(#{swapDevice._id}): State changed to #{swap.SwapStates.get(value).str}"
                     swapDevice: swapDevice
         
         else if swapPacket.regId is swap.Registers.channel.id
