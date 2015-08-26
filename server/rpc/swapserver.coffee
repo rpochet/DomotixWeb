@@ -27,7 +27,6 @@ state = undefined
 pubSub = undefined
 historicLength = 40
 
-
 #dbPanstampPool.on "throttle", ()->
 #    logger.debug "throttle"
 #dbPanstampPool.on "drain", ()->
@@ -248,10 +247,18 @@ addSwapPacketInQueue = (swapDevice, swapPacket) ->
 ####################################################################################
 sendQueuedSwapPackets = (swapDevice) ->
     queuedSwapPackets = state.getState(swap.MQ.Type.SWAP_DEVICE)[swapDevice._id]
+    
     return if not queuedSwapPackets
+    return if not queuedSwapPackets.value
+    return if queuedSwapPackets.value.length == 0
+    
     logger.debug "Sending queued SWAP Packet to #{swapDevice._id}"
-    while (queuedSwapPacket = queuedSwapPackets.shift()) != null
-        sendSwapPacket queuedSwapPackets
+    
+    while (queuedSwapPacket = queuedSwapPackets.value.shift()) != undefined
+        serial.send swapPacket
+        addSwapPacket swapPacket
+    
+    state.updateState swap.MQ.Type.SWAP_DEVICE, swapDevice._id, queuedSwapPackets
 
 
 ####################################################################################
@@ -335,8 +342,6 @@ swapPacketReceived = (swapPacket) ->
                     name: "newDevice"
                     text: "New device detected: #{swapDevice.productCode}, #{swapDevice.address}"
                 
-                console.log "############################################################################# newDevice #############################################################################"
-                
                 dbPanstampPool.addTask dbPanstamp.save, "DEV" + swap.num2byte(swapDevice.address), swapDevice, (err, doc) ->
                     return logger.error "Save new device DEV#{swap.num2byte(swapDevice.address)} failed: #{JSON.stringify(err)}" if err?
                     swapDevice._id = doc._id
@@ -373,10 +378,9 @@ swapPacketReceived = (swapPacket) ->
             # Nothing special to do 
             
         else if swapPacket.regId is swap.Registers.state.id
-            swapDevice.systemState = swap.SwapStates.get value
-            swapDevice.systemState = swapDevice.systemState.level
+            swapDevice.systemState = swap.SwapStates.get(value).level
             
-            if swapDevice.pwrdownmode
+            if swapDevice.pwrdownmode && swapDevice.systemState is swap.SwapStates.RXON.level
                 saveChanges = false
                 sendQueuedSwapPackets swapDevice
             else
@@ -426,9 +430,6 @@ swapPacketReceived = (swapPacket) ->
             newAddress = value[0]
             oldAddress = swapDevice.address
             if oldAddress != newAddress  # may be due a QUERY request
-                
-                console.log "##################################################################### oldAddress #####################################################################"
-                
                 dbPanstampPool.addTask dbPanstamp.save, "DEV" + swap.num2byte(newAddress), swapDevice, (err, doc) ->
                     return logger.error "Save device DEV#{swap.num2byte(newAddress)} failed: #{JSON.stringify(err)}" if err?
                     devices["DEV" + swap.num2byte(newAddress)] = swapDevice
@@ -486,13 +487,6 @@ swapPacketReceived = (swapPacket) ->
         if saveChanges
             dbPanstampPool.addTask saveSwapDevice, swapDevice, () ->
                 ss.api.publish.all swap.MQ.Type.SWAP_DEVICE
-        
-        #logger.debug "Saving device #{swapDevice.address} with rev #{swapDevice._rev}"
-        #dbPanstampPool.addTask dbPanstamp.save, "DEV" + swap.num2byte(swapDevice.address), swapDevice._rev, swapDevice, (err, res) ->
-        #    return logger.error "Save device DEV#{swap.num2byte(swapDevice.address)}/#{swapDevice._rev} failed: #{JSON.stringify(err)}" if err?
-        #    devices["DEV" + swap.num2byte(swapDevice.address)]._rev = res.rev
-        #    logger.debug "Device #{swapDevice.address} saved, new rev is #{swapDevice._rev}"
-        #    ss.api.publish.all swap.MQ.Type.SWAP_DEVICE
     
     else if swapPacket.func is swap.Functions.QUERY
         logger.info "Query request received from #{swapPacketsource} for swapDevice #{swapPacketdest} register #{swapPacket.regId}"
@@ -563,7 +557,7 @@ onUpdateDevice = (oldDevice, newDevice) ->
 # Gets the value of a specific register
 ####################################################################################
 sendSwapQuery = (address, registerId) ->
-    sendSwapPacket swap.Functions.QUERY, address, registerId, value
+    sendSwapPacket swap.Functions.QUERY, address, registerId, undefined
 
 
 ####################################################################################
@@ -583,7 +577,12 @@ sendSwapPacket = (functionCode, address, registerId, value) ->
     swapPacket.func = functionCode
     swapPacket.regAddress = address
     swapPacket.regId = registerId
-    swapPacket.value = value
+    swapPacket.value = value if value?
+    
+    swapDevice = devices["DEV" + swap.num2byte(address)]
+    if not swapDevice
+        logger.error "Unkown SWAP Device address #{address}"
+        return
     
     if swapDevice.pwrdownmode
         addSwapPacketInQueue swapDevice, swapPacket
@@ -672,9 +671,6 @@ exports.actions = (req, res, ss) ->
         # TODO: handle device update...
         if onUpdateDevice oldDevice, newDevice
           cid = "DEV" + swap.num2byte newDevice.address
-          
-          console.log "############################################################################# updateDevice #############################################################################"
-          
           dbPanstampPool.addTask dbPanstamp.save, cid, devices[cid]._rev, newDevice, (err, res) ->
               return logger.error "Save device #{cid}/#{devices[cid]._rev} failed: #{JSON.stringify(err)}" if err?
               newDevice._rev = res.rev
