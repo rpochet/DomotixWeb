@@ -254,7 +254,7 @@ sendQueuedSwapPackets = (swapDevice) ->
     
     logger.debug "Sending queued SWAP Packet to #{swapDevice._id}"
     
-    while (queuedSwapPacket = queuedSwapPackets.value.shift()) != undefined
+    while (swapPacket = queuedSwapPackets.value.shift()) != undefined
         serial.send swapPacket
         addSwapPacket swapPacket
     
