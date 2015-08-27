@@ -10,6 +10,21 @@
         "pattern": "-yyyy-MM-dd",
         "alwaysIncludePattern": true
       }
+    },
+    {
+        "type": "smtp",
+        "recipients": "pochet.romuald@gmail.com",
+        "level": "ERROR",
+        "sendInterval": 60,
+        "SMTP": {
+            "host": "smtp.gmail.com",
+            "secure": true,
+            "port": 465,
+            "auth": {
+                "user": "pochet.romuald@gmail.com",
+                "pass": "8Vyr7acpgoogle"
+            }
+        }
     }
   ],
   "levels": {
