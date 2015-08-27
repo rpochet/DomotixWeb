@@ -17,12 +17,12 @@
         "level": "ERROR",
         "sendInterval": 60,
         "SMTP": {
-            "host": "smtp.gmail.com",
+            "host": "relay.proximus.be",
             "secure": true,
-            "port": 465,
+            "port": 587,
             "auth": {
-                "user": "pochet.romuald@gmail.com",
-                "pass": "8Vyr7acpgoogle"
+                "user": "fc529855@skynet.be",
+                "pass": "8Vyr7acpbelacom"
             }
         }
     }
