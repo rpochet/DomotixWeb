@@ -184,8 +184,8 @@ serial.on "started", () ->
         logger.debug "Management message: #{JSON.stringify(message)}"
         state.updateState swap.MQ.Type.CLIENTS, client, type, data
     
-    ss.server.on swap.MQ.Type.MANAGEMENT, (type, message) ->
-        logger.error "MANAGEMENT: #{type} - #{message}" if type is swap.MANAGEMENT.Type.NETWORK
+    #ss.server.on swap.MQ.Type.MANAGEMENT, (type, message) ->
+    #    logger.error "MANAGEMENT: #{type} - #{message}" if type is swap.MANAGEMENT.Type.NETWORK
     
     pubSub.on swap.MQ.Type.SWAP_PACKET, (rawSwapPacket) ->
         ccPacket = new swap.CCPacket "(FFFF)" + rawSwapPacket.toString 'hex'
