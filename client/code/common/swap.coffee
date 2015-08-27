@@ -28,7 +28,22 @@ class SwapPacket
         @regId = ccPacket?.data[6]
         @value = ccPacket?.data.slice(7, ccPacket?.data.length)
         @time = ccPacket?.time
-
+    
+    fromObject: (obj) ->
+        # http://www.ti.com/lit/an/swra114d/swra114d.pdf
+        @RSSI = obj?.RSSI
+        @LQI = obj?.LQI
+        @dest = obj?.dest
+        @source = obj?.source
+        @hop = obj?.hop
+        @security = obj?.security
+        @nonce = obj?.nonce
+        @func = obj?.func
+        @regAddress = obj?.regAddress
+        @regId = obj?.regId
+        @value = obj?.value
+        @time = obj?.time
+    
     toString: () ->
         res = (num2byte(i) for i in [@dest, @source]).join('')
         res += @hop.toString(16) + @security.toString(16)   
@@ -163,7 +178,14 @@ MQ =
         PRESSURE: "PRESSURE"
         CLIENTS: "CLIENTS"
         _ALL: "_ALL"
-        
+
+MANAGEMENT =
+    Type:
+        NETWORK: "NETWORK"
+    SubType:
+        SERVER_STARTED: "SERVER_STARTED"
+        SERVER_STOPPED: "SERVER_STOPPED"
+    
 module.exports =
     CCPacket: CCPacket
     SwapPacket: SwapPacket

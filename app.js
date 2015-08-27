@@ -63,13 +63,11 @@ logger.info('Server listening on port %d in %s mode', serverConfig.port, ss.env)
 ss.start(server);
 
 setTimeout(function () {
-    ss.api.publish.all(swap.MQ.Type.MANAGEMENT, "network", "SERVER_STARTED");
+    ss.api.publish.all(swap.MQ.Type.MANAGEMENT, swap.MANAGEMENT.Type.NETWORK, swap.MANAGEMENT.SubType.SERVER_STARTED);
 }, 3000);
 
 process.on('SIGINT', function(){
-    ss.api.publish.all(swap.MQ.Type.MANAGEMENT, "network", "SERVER_STOPPED");
-    logger.info('Server is stopping...');
-    logger.info(arguments);
+    ss.api.publish.all(swap.MQ.Type.MANAGEMENT, swap.MANAGEMENT.Type.NETWORK, swap.MANAGEMENT.SubType.SERVER_STOPPED);
     process.exit()
 })
 
