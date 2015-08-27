@@ -234,31 +234,35 @@ addSwapPacket = (swapPacket, swapDevice, swapRegister) ->
 # Add SWAP Packet in queue for a SWAP Device
 ####################################################################################
 addSwapPacketInQueue = (swapDevice, swapPacket) ->
-    logger.debug "Adding SWAP Packet to queue for SWAP Device #{swapDevice._id}"
+    logger.debug "Adding SWAP Packet to queue for SWAP Device #{swapDevice.address}"
     
-    queuedSwapPackets = state.getState(swap.MQ.Type.SWAP_DEVICE)[swapDevice._id]
-    queuedSwapPackets = new Array() if not queuedSwapPackets
-    queuedSwapPackets.push swapPacket
-    state.updateState swap.MQ.Type.SWAP_DEVICE, swapDevice._id, queuedSwapPackets
+    queuedSwapPackets = state.getState swap.MQ.Type.SWAP_DEVICE, swapDevice.address
+    queuedSwapPackets = {} if not queuedSwapPackets
+    queuedSwapPackets.value = [] if not queuedSwapPackets.value
+    
+    queuedSwapPackets.value.push swapPacket
+    
+    state.updateState swap.MQ.Type.SWAP_DEVICE, swapDevice.address, queuedSwapPackets.value
 
 
 ####################################################################################
 # Sent queued SWAP Packet to SWAP Device
 ####################################################################################
 sendQueuedSwapPackets = (swapDevice) ->
-    queuedSwapPackets = state.getState(swap.MQ.Type.SWAP_DEVICE)[swapDevice._id]
+    queuedSwapPackets = state.getState swap.MQ.Type.SWAP_DEVICE, swapDevice.address
     
     return if not queuedSwapPackets
     return if not queuedSwapPackets.value
     return if queuedSwapPackets.value.length == 0
     
-    logger.debug "Sending queued SWAP Packet to #{swapDevice._id}"
+    logger.debug "Sending queued SWAP Packet to address #{swapDevice.address}"
     
     while (swapPacket = queuedSwapPackets.value.shift()) != undefined
+        swapPacket.__proto__ = swap.SwapPacket.prototype
         serial.send swapPacket
         addSwapPacket swapPacket
     
-    state.updateState swap.MQ.Type.SWAP_DEVICE, swapDevice._id, new Array()
+    state.updateState swap.MQ.Type.SWAP_DEVICE, swapDevice.address, queuedSwapPackets.value
 
 
 ####################################################################################
@@ -580,9 +584,8 @@ sendSwapPacket = (functionCode, address, registerId, value) ->
     swapPacket.value = value if value?
     
     swapDevice = devices["DEV" + swap.num2byte(address)]
-    if not swapDevice
-        logger.error "Unkown SWAP Device address #{address}"
-        return
+    
+    return logger.error "Unkown SWAP Device address #{address}" if not swapDevice
     
     if swapDevice.pwrdownmode
         addSwapPacketInQueue swapDevice, swapPacket
@@ -628,8 +631,8 @@ exports.actions = (req, res, ss) ->
     getSwapEvents: ->
         res swapEvents
     
-    getState: ->
-        res state.getState()
+    getState: (name, key) ->
+        res state.getState(name, key)
     
     # Return clients state
     getClients: ->
@@ -658,9 +661,17 @@ exports.actions = (req, res, ss) ->
         res true
     
     refreshState: ->
-        logger.info "State before #{JSON.stringify(state.getState())}"
+        try
+            logger.info "State before #{JSON.stringify(state.getState())}"
+        catch e
+            logger.error e
+        
         state.init()
-        logger.info "State after #{JSON.stringify(state.getState())}"
+        
+        try
+            logger.info "State after #{JSON.stringify(state.getState())}"
+        catch e
+            logger.error e
         res true
         
     refreshSwapPacketsEvents: ->

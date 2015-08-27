@@ -30,7 +30,10 @@ class State extends events.EventEmitter
             return logger.error "Get state failed: #{JSON.stringify(err)}" if err?
             @state = doc
             logger.info "State initialized"
-            logger.info @state
+            try
+                logger.info @state
+            catch e
+                logger.error e
             
             if @config.state.clientCheck
                 @clientcheck = setInterval () =>
@@ -53,8 +56,6 @@ class State extends events.EventEmitter
                 , @config.state.clientCheckInterval
     
     saveState: () ->
-        logger.debug "Saving state: #{JSON.stringify(@state)}" 
-        
         @dbPanstampPool.addTask @dbPanstamp.save, "state", @state, (err, status) =>
             logger.debug err if err?
             return logger.error "Save state failed: #{JSON.stringify(err)}" if err?
@@ -62,11 +63,11 @@ class State extends events.EventEmitter
             logger.debug "State saved: #{JSON.stringify(@state)}"
     
     updateState: (name, key, value, data) ->
-        logger.debug "Update state #{name} - #{key} - #{value}" if value != "ping"
+        logger.debug "Update state #{name} - #{key} - #{JSON.stringify(value)}" if value != "ping"
         
         @state[name] = {} if not @state[name]
         @state[name][key] = {} if not @state[name][key]
-        @state[name][key].time = moment().unix()
+        @state[name][key].nonce = 0 if not @state[name][key].nonce
         
         if value is "ping"
             #if @state[name][key].nonce > 
@@ -76,18 +77,22 @@ class State extends events.EventEmitter
             #        swapRegister: swapRegister
             return
         
-        logger.info "Update state #{name}/#{key} with value #{value}"
+        logger.info "Update state #{name}/#{key} with value #{JSON.stringify(value)}"
+        @state[name][key].time = moment().unix()
         @state[name][key].value = value
         @state[name][key].data = data if data?
         @state[name][key].nonce = @state[name][key].nonce++
+        
+        #logger.debug @state
         
         @saveState()
         
         @state[name][key].nonce
     
-    getState: (name) ->
-        return @state[name] if name
-        return @state if name?
+    getState: (name, key) ->
+        return @state if not name
+        return @state[name] if not key
+        return @state[name][key]
     
     destroy: () ->
         logger.info "Stopping state manager..."
