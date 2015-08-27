@@ -64,12 +64,12 @@ ss.start(server);
 
 setTimeout(function () {
     //ss.api.publish.all(swap.MQ.Type.MANAGEMENT, swap.MANAGEMENT.Type.NETWORK, swap.MANAGEMENT.SubType.SERVER_STARTED);
-    logger.error("MANAGEMENT: %s - %s", swap.MANAGEMENT.Type.NETWORK, swap.MANAGEMENT.SubType.SERVER_STARTED);
+    logger.error("%s: %s - %s", swap.MQ.Type.MANAGEMENT, swap.MQ.SubType.NETWORK, swap.MQ.Extra.SERVER_STARTED);
 }, 3000);
 
 process.on('SIGINT', function(){
     //ss.api.publish.all(swap.MQ.Type.MANAGEMENT, swap.MANAGEMENT.Type.NETWORK, swap.MANAGEMENT.SubType.SERVER_STOPPED);
-    logger.error("MANAGEMENT: %s - %s", swap.MANAGEMENT.Type.NETWORK, swap.MANAGEMENT.SubType.SERVER_STARTED);
+    logger.error("%s: %s - %s", swap.MQ.Type.MANAGEMENT, swap.MQ.SubType.NETWORK, swap.MQ.Extra.SERVER_STARTED);
     process.exit()
 })
 

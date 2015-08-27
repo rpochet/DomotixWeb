@@ -178,11 +178,9 @@ MQ =
         PRESSURE: "PRESSURE"
         CLIENTS: "CLIENTS"
         _ALL: "_ALL"
-
-MANAGEMENT =
-    Type:
-        NETWORK: "NETWORK"
     SubType:
+        NETWORK: "NETWORK"
+    Extra:
         SERVER_STARTED: "SERVER_STARTED"
         SERVER_STOPPED: "SERVER_STOPPED"
     
