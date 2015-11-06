@@ -30,3 +30,4 @@ node_modules
 .settings
 .forever
 examples-master/
+tmp/
