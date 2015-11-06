@@ -1,0 +1,33 @@
+{
+  "appenders": [
+    {
+      "type": "logLevelFilter",
+      "level": "INFO",
+      "appender": 
+      {
+        "type": "dateFile",
+        "filename": "logs/domotix.log",
+        "pattern": "-yyyy-MM-dd",
+        "alwaysIncludePattern": true
+      }
+    },
+    {
+        "type": "smtp",
+        "recipients": "pochet.romuald@gmail.com",
+        "level": "ERROR",
+        "sendInterval": 60,
+        "SMTP": {
+            "host": "relay.proximus.be",
+            "secure": true,
+            "port": 587,
+            "auth": {
+                "user": "fc529855@skynet.be",
+                "pass": "8Vyr7acpbelacom"
+            }
+        }
+    }
+  ],
+  "levels": {
+    "[all]": "INFO"
+  }
+}
