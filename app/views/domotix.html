@@ -1,0 +1,38 @@
+<div ng-controller="DomotixCtrl" class="container">
+  <div class="tab-pane">
+    <ul class="nav nav-tabs">
+      <li class="nav-item" ng-repeat="level in levels" title="{{level.name}}">
+        <a href="#level_{{level.id}}" class="nav-link" ng-class="{'active': level.id==2}" role="tab" data-toggle="tab">{{level.name}}</a>
+      </li>
+    </ul>
+    <div class="tab-content">
+      <div ng-repeat="level in levels" id="level_{{level.id}}" role="tabpanel" class="tab-pane" ng-class="{'active': level.id==2}">
+        <svg viewBox="0 0 1200 1200" version="1.1" width="1200px" height="1200px" ng-click="handleSvgClick($event, level)">
+          <defs>
+            <circle id="r1" cx="0" cy="0" r="50" stroke-width="0"></circle>
+            <radialGradient id="g1" cx="50%" cy="50%" r="50%">
+              <stop stop-color="grey" offset="0%"></stop>
+              <stop stop-color="white" offset="100%"></stop>
+            </radialGradient>
+            <circle id="r2" cx="0" cy="0" r="50" stroke-width="0"></circle>
+            <radialGradient id="g2" cx="50%" cy="50%" r="50%">
+              <stop stop-color="black" offset="0%"></stop>
+              <stop stop-color="teal" offset="50%"></stop>
+              <stop stop-color="white" offset="100%"></stop>
+            </radialGradient>
+          </defs>
+          <path id="level{{level.id}}" d="{{level.path}}" fill="white" stroke="#428bca" stroke-width="6"></path>
+          <text>{{level.id}} {{level.name}}</text>
+          <g ng-repeat="room in level.rooms">
+            <path id="room{{room.id}}" d="{{room.path}}" fill="white" stroke="#428bca" stroke-width="3"></path>
+            <use ng-repeat="light in room.lights" id="light-{{light.swapDeviceAddress}}-{{light.outputNb}}" x="{{lightPosition(room, light)[0]}}" y="{{lightPosition(room, light)[1]}}" xlink:href="{{lightDef(room, light)}}" fill="{{lightFill(room, light)}}"></use>
+            <g ng-repeat="device in devices | objectToArray | filter: { location: { room_id: room.id }}">
+              <text x="{{devicePosition(device)[0]}}" y="{{devicePosition(device)[1]}}" ng-show="device.temperature">{{device.temperature}} °C</text>
+              <text x="{{devicePosition(device)[0]}}" y="{{devicePosition(device)[1] + 20}}" ng-show="device.pressure">{{device.pressure}} mbar</text>
+            </g>
+          </g>
+        </svg>
+      </div>
+    </div>
+  </div>
+</div>

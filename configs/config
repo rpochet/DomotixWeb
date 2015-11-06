@@ -1,0 +1,14 @@
+name                            : Domotix
+author                          : Pochet Romuald
+version                         : 1.01
+secret                          : secret-key-for-web
+
+// Mail settings
+mail.smtp                       : relay.proximus.be
+mail.smtp.options               : {"secure":false,"port":587,"user":"fc529855@skynet.be","password":"8Vyr7acp","timeout":10000}
+mail.address.from               : pochet.romuald@gmail.com
+mail.address.reply              : pochet.romuald@gmail.com
+mail.address.bcc                :
+
+
+allow-compile-script             : false

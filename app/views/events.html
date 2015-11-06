@@ -1,0 +1,31 @@
+<div ng-controller="EventsCtrl" class="container">
+  <div class="row">
+    <div class="panel panel-default">
+      <div class="panel-heading">Create event</div>
+      <div class="panel-body">
+        <form ng-submit="createEvent()" role="form">
+          <div class="form-group">
+            <label>Event type</label>
+            <select ng-model="eventType" ng-options="eventType.label for eventType in eventTypes" class="form-control"></select>
+          </div>
+          <div ng_show="eventType.subTypes" class="form-group">
+            <label>Event subtype</label>
+            <select ng-model="eventSubType" ng-options="eventSubType.label for eventSubType in eventType.subTypes" class="form-control"></select>
+          </div>
+          <div class="form-group">
+            <label>Event value</label>
+            <input type="text" ng-model="eventValue" class="form-control"/>
+          </div>
+          <div class="form-group">
+            <label>Event detail</label>
+            <textarea type="text" ng-model="eventDetail" class="form-control"></textarea>
+          </div><br/>
+          <input type="submit" value="Create" class="btn-primary"/>
+        </form>
+      </div>
+      <div class="panel-footer">
+        <p> <span ng-hide="eventSubType">{{eventType.description}} </span>{{eventSubType.description}}</p>
+      </div>
+    </div>
+  </div>
+</div>

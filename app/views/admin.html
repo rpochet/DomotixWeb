@@ -1,0 +1,199 @@
+<div ng-controller="AdminCtrl" class="admin">
+  
+  <!-- Nav tabs -->
+  <ul class="nav nav-tabs" role="tablist">
+    <li role="presentation" class="active"><a href="#android" aria-controls="android" role="tab" data-toggle="tab">Android</a></li>
+    <li role="presentation"><a href="#network" aria-controls="network" role="tab" data-toggle="tab">Network</a></li>
+    <li role="presentation"><a href="#messages" aria-controls="messages" role="tab" data-toggle="tab">Messages</a></li>
+    <li role="presentation"><a href="#couchdb" aria-controls="couchdb" role="tab" data-toggle="tab">Couch DB</a></li>
+    <li role="presentation"><a href="#rabbitmq" aria-controls="rabbitmq" role="tab" data-toggle="tab">Rabbit MQ</a></li>
+    <li role="presentation"><a href="#" aria-controls="" role="tab" data-toggle="tab"></a></li>
+    <li role="presentation"><a href="#acra" aria-controls="acra" role="tab" data-toggle="tab">ACRA</a></li>
+  </ul>
+
+  <!-- Tab panes
+  <div class="tab-content"> -->
+  <div>
+    <div role="tabpanel" class="tab-pane active" id="android">
+      <div class="panel panel-default">
+        <div class="panel-heading">Android Application</div>
+        <div class="panel-body">
+          <div><a href="../Domotix.apk"><strong>Domotix</strong></a></div>
+        </div>
+      </div>      
+    </div>
+    <div role="tabpanel" class="tab-pane" id="network">
+      <div class="panel panel-default">
+        <div class="panel-heading">Scan</div>
+        <div class="panel-body">
+          <div><a ng-click="checkNewDevices()"><strong>Check stamps</strong></a>
+            <hr/><a ng-click="refreshDevices(true)"><strong>Refresh devices</strong></a>
+            <hr/><a ng-click="refreshSwapPacketsEvents()"><strong>Refresh Swap packets</strong></a>
+            <hr/><a ng-click="refreshState()"><strong>Refresh state</strong></a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div role="tabpanel" class="tab-pane" id="messages">
+      <div class="panel panel-default">
+        <div class="panel-heading">Messages</div>
+        <div class="panel-body">
+          <div class="panel panel-default">
+            <div class="panel-heading">Send message</div>
+            <div class="panel-body">
+              <form ng-submit="sendMessage(message)" role="form">
+                <div class="form-group">
+                  <label>Function codes</label>
+                  <select ng-model="message.func" ng-options="key for (key, value) in functions" class="form-control"></select>
+                </div>
+                <div class="form-group">
+                  <label>Destination address</label>
+                  <input type="number" ng-model="message.address" class="form-control"/>
+                </div>
+                <div class="form-group">
+                  <label>Register ID</label>
+                  <select ng-model="message.register" ng-options="name for (name, reg) in registers" class="form-control"></select>
+                  <input type="number" ng-model="message.register.id" class="form-control"/>
+                </div>
+                <div class="form-group">
+                  <label>Register Value (Command only - Length and value)</label>
+                  <input type="number" ng-model="message.register.length" ng-disabled="message.func &lt; 2" class="form-control"/>
+                  <input type="number" ng-model="message.register.value" ng-disabled="message.func &lt; 2" class="form-control"/>
+                  <input ng-model="message.register.valueStr" ng-disabled="message.func &lt; 2" class="form-control"/>
+                </div><br/>
+                <input type="submit" value="Send" class="btn-primary"/>
+              </form>
+            </div>
+          </div>
+          <div class="panel panel-default">
+            <div class="panel-heading">Decode message</div>
+            <div class="panel-body">
+              <form role="form">
+                <div class="form-group">
+                  <div class="input-group">
+                    <div class="input-group-addon"><span ng-click="decodeMessage(rawMessage)" class="glyphicon glyphicon-refresh"></span></div>
+                    <div class="input-group-addon"><span ng-click="sendMessage(decodedMessage)" class="glyphicon glyphicon-play" title="Send message"></span></div>
+                    <div class="input-group-addon"><span ng-click="messageFromCloud(decodedMessage)" class="glyphicon glyphicon-cloud" title="Simulate message"></span></div>
+                    <input type="text" placeholder="SWAP Packet" size="40" ng-model="rawMessage" ng-change="decodeMessage(rawMessage)" class="form-control"/>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <div class="col-md-1">RSSI {{ decodedMessage.RSSI }}</div>
+                  <div class="col-md-1">LQI {{ decodedMessage.LQI }}</div>
+                  <div class="col-md-1">To {{ decodedMessage.dest }}</div>
+                  <div class="col-md-1">From {{ decodedMessage.source }}</div>
+                  <div class="col-md-1">Hop {{ decodedMessage.hop }}</div>
+                  <div class="col-md-1">Security {{ decodedMessage.security }}</div>
+                  <div class="col-md-1">Nonce {{ decodedMessage.nonce }}</div>
+                  <div class="col-md-1">Function {{ decodedMessage.func }}</div>
+                  <div class="col-md-1">Register {{ decodedMessage.regAddress }} / {{ decodedMessage.regId }}</div>
+                  <div class="col-md-1">Value {{ decodedMessage.regValue }}</div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div role="tabpanel" class="tab-pane" id="messages">
+      <div class="panel panel-default">
+        <div class="panel-heading">Simulator</div>
+        <div class="panel-body">
+          <div class="panel panel-default">
+            <div class="panel-heading">New device</div>
+            <div class="panel-body">
+              <form ng-submit="createNewDevice(newDevice)" role="form">
+                <div class="form-group">
+                  <div class="input-group">
+                    <input type="text" placeholder="Product Code" size="40" ng-model="newDevice.productCode" class="form-control"/>
+                    <input type="text" placeholder="Hardware Version" size="40" ng-model="newDevice.hardwareVersion" class="form-control"/>
+                    <input type="text" placeholder="Firmware Version" size="40" ng-model="newDevice.firmwareVersion" class="form-control"/>
+                    <input type="text" placeholder="Address" size="5" ng-model="newDevice.address" class="form-control"/>
+                  </div>
+                </div><br/>
+                <input type="submit" value="Send" class="btn-primary"/>
+              </form>
+            </div>
+          </div>
+          <div class="panel panel-default">
+            <div class="panel-heading">Change device address</div>
+            <div class="panel-body">
+              <form ng-submit="changeDeviceAddress(changeDevice)" role="form">
+                <div class="form-group">
+                  <div class="input-group">
+                    <input type="number" placeholder="Old address" size="10" ng-model="changeDevice.oldAddress" class="form-control"/>
+                    <input type="number" placeholder="New address" size="40" ng-model="changeDevice.newAddress" class="form-control"/>
+                  </div>
+                </div><br/>
+                <input type="submit" value="Send" class="btn-primary"/>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div role="tabpanel" class="tab-pane" id="couchdb">
+      <div class="panel panel-default">
+        <div class="panel-heading">Configuration</div>
+        <div class="panel-body">
+          <ul>
+            <li>Script: /etc/init.d/couchdb</li>
+            <li>Configuration: /etc/default/couchdb</li>
+            <li>Log: /var/log/couchdb/</li>
+            <li>Url: <a href="http://192.168.1.2:5984/_utils/index.html" target="_couchdb">Admin</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="panel panel-default">
+        <div class="panel-heading">Clean by view</div>
+        <div class="panel-body">
+          <form ng-submit="cleanByView()" role="form">
+            <div class="form-group">
+              <label>View</label>
+              <input type="text" ng-model="couchDbView" class="form-control"/>
+            </div><br/>
+            <input type="submit" value="Clean" class="btn-primary"/>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div role="tabpanel" class="tab-pane" id="rabbitmq">
+      <div class="panel panel-default">
+        <div class="panel-heading">Configuration</div>
+        <div class="panel-body">
+          <ul>
+            <li>Script: /etc/init.d/rabbitmq-server</li>
+            <li>Configuration: /etc/rabbitmq/rabbitmq.config </li>
+            <li>Log: /var/log/rabbitmq/</li>
+            <li>Url: <a href="http://domotix:domotix@192.168.1.2:55672/" target="_rabbitmq">Admin</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div role="tabpanel" class="tab-pane" id="???">
+      <div class="panel panel-default">
+        <div class="panel-heading">Configuration</div>
+        <div class="panel-body">
+          <ul>
+            <li>Address: 192.168.1.4</li>
+            <li>Url: 
+              <iframe href="http://192.168.1.4:8111/"></iframe>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div role="tabpanel" class="tab-pane" id="acra">
+      <div class="panel panel-default">
+        <div class="panel-heading">Configuration</div>
+        <div class="panel-body">
+          <ul>
+            <li>Configuration: /etc/rabbitmq/rabbitmq.config</li>
+            <li>Url: <a href="http://192.168.1.2:5984/acralyzer/_design/acralyzer/index.html" target="_acra">Acra</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+</div>

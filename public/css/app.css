@@ -1,0 +1,14 @@
+@font-face {
+    font-family: "Xirod";
+    src: url('../fonts/xirod.ttf');
+}
+
+.xirod {
+	font-family: "Xirod";
+	color: #2B496B !important;
+}
+
+ul > li.nav-item.active > a {
+	color: #2B496B !important;
+	font-weight: bold;
+}
