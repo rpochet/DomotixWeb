@@ -50,7 +50,7 @@ app.config(function ($stateProvider, $urlRouterProvider) {
     });
 });
 
-app.run(function($rootScope, $window, websocketService) {
+app.run(function($rootScope, $window, $uibModal, websocketService) {
   var wsUrl = 'ws://' + $window.location.host;
    
   $rootScope.$on('websocket:ready', function() {
@@ -119,10 +119,6 @@ app.run(function($rootScope, websocketService) {
         websocketService.rpc('swapserver.sendSwapPacket', message.func, message.address, message.register.id, swap.getValue(message.register.value || message.register.valueStr, message.register.length));        
       }
     };
-    
-    $rootScope.$on('swapDevice_updated', function() {
-      $rootScope.refreshDevices();
-    });
     
     $rootScope.$on('swapDevice_updated', function() {
       $rootScope.refreshDevices();

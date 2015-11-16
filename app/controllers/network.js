@@ -1,14 +1,17 @@
 app.controller('NetworkCtrl', [
-  '$scope', '$http', 'rpc', function($scope, $http, rpc) {
-    var defaultMaxLQI, defaultMaxRSSI, defaultMinLQI, defaultMinRSSI, formatDate, formatUpdateDate, loadNonce, loadQuality, maxSource, minSource, s;
-    minSource = 2;
-    maxSource = 4;
-    formatDate = d3.time.format("%Y-%m-%d %H:%M:%S");
-    formatUpdateDate = d3.time.format("%Y-%m-%d %H:%M:%S");
-    defaultMinRSSI = -120;
-    defaultMaxRSSI = 120;
-    defaultMinLQI = 0;
-    defaultMaxLQI = 120;
+  '$scope', '$http', 'websocketService', function($scope, $http, websocketService) {
+    var swap = isomorphic.swap;
+    
+    var s;
+    var minSource = 2;
+    var maxSource = 4;
+    var formatDate = d3.time.format("%Y-%m-%d %H:%M:%S");
+    var formatUpdateDate = d3.time.format("%Y-%m-%d %H:%M:%S");
+    var defaultMinRSSI = -120;
+    var defaultMaxRSSI = 120;
+    var defaultMinLQI = 0;
+    var defaultMaxLQI = 120;
+    
     $scope.quality = {
       zoomRSSI: false,
       zoomLQI: false,
@@ -66,7 +69,8 @@ app.controller('NetworkCtrl', [
     $scope.createQualityGraph = function() {
       return $scope.quality.chart = c3.generate($scope.quality.options);
     };
-    loadQuality = function() {
+    
+    var loadQuality = function() {
       return $http.get('http://192.168.1.2:5984/panstamp_packets/_design/domotix/_view/network_status', {
         params: {
           skip: $scope.quality.offsetData,
@@ -106,6 +110,7 @@ app.controller('NetworkCtrl', [
       $scope.quality.offsetData = $scope.quality.offsetData - $scope.quality.nbData;
       return $scope.refreshQuality();
     };
+    
     $scope.nonce = {
       offsetData: 0,
       nbData: 100,
@@ -147,7 +152,7 @@ app.controller('NetworkCtrl', [
     $scope.createNonceGraph = function() {
       return $scope.nonce.chart = c3.generate($scope.nonce.options);
     };
-    loadNonce = function(addr) {
+    var loadNonce = function(addr) {
       return $http.get('http://192.168.1.2:5984/panstamp_packets/_design/domotix/_view/nonce_' + addr, {
         params: {
           skip: $scope.nonce.offsetData,
@@ -187,23 +192,28 @@ app.controller('NetworkCtrl', [
       $scope.nonce.offsetData = $scope.nonce.offsetData - $scope.nonce.nbData;
       return $scope.refreshNonce();
     };
+    
     $scope.swapPackets = [];
     $scope.swapEvents = [];
-    ss.server.on('ready', function() {
-      ss.rpc('swapserver.getSwapPackets', function(swapPackets) {
-        return $scope.$apply(function() {
-          return $scope.swapPackets = swapPackets;
-        });
-      });
-      ss.rpc('swapserver.getSwapEvents', function(swapEvents) {
-        return $scope.$apply(function() {
-          return $scope.swapEvents = swapEvents;
-        });
-      });
+    
+    $scope.$on('websocket:ready', function() {
+      $scope.refreshConfig();
       $scope.createQualityGraph();
-      return $scope.createNonceGraph();
+      $scope.createNonceGraph();
     });
-    ss.event.on(swap.MQ.Type.SWAP_PACKET, function(sp) {
+    
+    $scope.refreshSwapPackets = function() {
+      websocketService.rpc('swapserver.getSwapPackets').then(function(swapPackets) {
+        return $scope.swapPackets = swapPackets;
+      });
+    };
+    $scope.refreshSwapEvents = function() {
+      websocketService.rpc('swapserver.getSwapEvents').then(function(swapEvents) {
+        return $scope.swapEvents = swapEvents;
+      });
+    };
+    
+    $scope.$on(swap.MQ.Type.SWAP_PACKET, function(sp) {
       return $scope.$apply(function() {
         $scope.swapPackets.splice(0, 0, sp);
         if ($scope.swapPackets.length > 40) {
@@ -211,7 +221,7 @@ app.controller('NetworkCtrl', [
         }
       });
     });
-    return ss.event.on(swap.MQ.Type.SWAP_EVENT, function(se) {
+    $scope.$on(swap.MQ.Type.SWAP_EVENT, function(se) {
       return $scope.$apply(function() {
         $scope.swapEvents.splice(0, 0, se);
         if ($scope.swapEvents.length > 40) {

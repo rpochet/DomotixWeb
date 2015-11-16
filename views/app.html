@@ -1,7 +1,7 @@
 
 <!-- /app/common/
 @{ngCommon('swap')} -->
-@{import('ui-bootstrap-tpls-0.14.3.min.js', 'angular/angular-ui-router.js')}
+@{import('ui-bootstrap-tpls-0.14.3.min.js', 'angular/angular-ui-router.js', 'd3js/d3.v3.js', 'd3js/c3.js')}
 
 <!-- /app/services/ -->
 @{ngService('websocketService')}
@@ -12,12 +12,13 @@
 <!-- cdnjs -->
 @{ngLocale('fr-be')}
 
-<!-- /app/controllers/ 
-@{ngController('domotix', 'devices', 'config', 'network', 'events', 'plugins', 'admin')} -->
-@{ngController('domotix', 'devices', 'config', 'admin')}
+<!-- /app/controllers/ -->
+@{ngController('domotix', 'devices', 'config', 'network', 'events', 'plugins', 'admin')}
 
 <!-- /app/filters/ -->
 @{ngFilter('filters')}
+      
+<toast></toast>
 
 <div>
   <h1 class="display-1 xirod"><img src="domotix.ico" /> Domotix <small>Carpe Diem</small></h1>
@@ -32,8 +33,6 @@
   <li role="presentation" ui-sref-active="active" class="nav-item"><a ui-sref="plugins" class="nav-link">Plugins</a></li>
   <li role="presentation" ui-sref-active="active" class="nav-item"><a ui-sref="admin" class="nav-link">Admin</a></li>
 </ul>
-      
-<toast />
 
 <div ui-view>
 	<!-- VIEW -->

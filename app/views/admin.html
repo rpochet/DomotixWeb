@@ -1,21 +1,20 @@
-<div ng-controller="AdminCtrl" class="admin">
+<div ng-controller="AdminCtrl" class="tab-pane">
   
   <!-- Nav tabs -->
   <ul class="nav nav-tabs" role="tablist">
-    <li role="presentation" class="active"><a href="#android" aria-controls="android" role="tab" data-toggle="tab">Android</a></li>
-    <li role="presentation"><a href="#network" aria-controls="network" role="tab" data-toggle="tab">Network</a></li>
-    <li role="presentation"><a href="#messages" aria-controls="messages" role="tab" data-toggle="tab">Messages</a></li>
-    <li role="presentation"><a href="#couchdb" aria-controls="couchdb" role="tab" data-toggle="tab">Couch DB</a></li>
-    <li role="presentation"><a href="#rabbitmq" aria-controls="rabbitmq" role="tab" data-toggle="tab">Rabbit MQ</a></li>
-    <li role="presentation"><a href="#" aria-controls="" role="tab" data-toggle="tab"></a></li>
-    <li role="presentation"><a href="#acra" aria-controls="acra" role="tab" data-toggle="tab">ACRA</a></li>
+    <li class="nav-item"><a class="nav-link" href="#android" aria-controls="android" role="tab" data-toggle="tab">Android</a></li>
+    <li class="nav-item"><a class="nav-link" href="#network" aria-controls="network" role="tab" data-toggle="tab">Network</a></li>
+    <li class="nav-item"><a class="nav-link" href="#messages" aria-controls="messages" role="tab" data-toggle="tab">Messages</a></li>
+    <li class="nav-item"><a class="nav-link" href="#couchdb" aria-controls="couchdb" role="tab" data-toggle="tab">Couch DB</a></li>
+    <li class="nav-item"><a class="nav-link" href="#rabbitmq" aria-controls="rabbitmq" role="tab" data-toggle="tab">Rabbit MQ</a></li>
+    <li class="nav-item"><a class="nav-link" href="#" aria-controls="" role="tab" data-toggle="tab"></a></li>
+    <li class="nav-item"><a class="nav-link" href="#acra" aria-controls="acra" role="tab" data-toggle="tab">ACRA</a></li>
   </ul>
 
-  <!-- Tab panes
-  <div class="tab-content"> -->
-  <div>
+  <!-- Tab panes -->
+  <div class="tab-content">
     <div role="tabpanel" class="tab-pane active" id="android">
-      <div class="panel panel-default">
+      <div class="card">
         <div class="panel-heading">Android Application</div>
         <div class="panel-body">
           <div><a href="../Domotix.apk"><strong>Domotix</strong></a></div>
@@ -23,7 +22,7 @@
       </div>      
     </div>
     <div role="tabpanel" class="tab-pane" id="network">
-      <div class="panel panel-default">
+      <div class="card">
         <div class="panel-heading">Scan</div>
         <div class="panel-body">
           <div><a ng-click="checkNewDevices()"><strong>Check stamps</strong></a>
@@ -35,10 +34,10 @@
       </div>
     </div>
     <div role="tabpanel" class="tab-pane" id="messages">
-      <div class="panel panel-default">
+      <div class="card">
         <div class="panel-heading">Messages</div>
         <div class="panel-body">
-          <div class="panel panel-default">
+          <div class="card">
             <div class="panel-heading">Send message</div>
             <div class="panel-body">
               <form ng-submit="sendMessage(message)" role="form">
@@ -65,7 +64,7 @@
               </form>
             </div>
           </div>
-          <div class="panel panel-default">
+          <div class="card">
             <div class="panel-heading">Decode message</div>
             <div class="panel-body">
               <form role="form">
@@ -96,10 +95,10 @@
       </div>
     </div>
     <div role="tabpanel" class="tab-pane" id="messages">
-      <div class="panel panel-default">
+      <div class="card">
         <div class="panel-heading">Simulator</div>
         <div class="panel-body">
-          <div class="panel panel-default">
+          <div class="card">
             <div class="panel-heading">New device</div>
             <div class="panel-body">
               <form ng-submit="createNewDevice(newDevice)" role="form">
@@ -115,7 +114,7 @@
               </form>
             </div>
           </div>
-          <div class="panel panel-default">
+          <div class="card">
             <div class="panel-heading">Change device address</div>
             <div class="panel-body">
               <form ng-submit="changeDeviceAddress(changeDevice)" role="form">
@@ -133,7 +132,7 @@
       </div>
     </div>
     <div role="tabpanel" class="tab-pane" id="couchdb">
-      <div class="panel panel-default">
+      <div class="card">
         <div class="panel-heading">Configuration</div>
         <div class="panel-body">
           <ul>
@@ -144,7 +143,7 @@
           </ul>
         </div>
       </div>
-      <div class="panel panel-default">
+      <div class="card">
         <div class="panel-heading">Clean by view</div>
         <div class="panel-body">
           <form ng-submit="cleanByView()" role="form">
@@ -158,7 +157,7 @@
       </div>
     </div>
     <div role="tabpanel" class="tab-pane" id="rabbitmq">
-      <div class="panel panel-default">
+      <div class="card">
         <div class="panel-heading">Configuration</div>
         <div class="panel-body">
           <ul>
@@ -171,7 +170,7 @@
       </div>
     </div>
     <div role="tabpanel" class="tab-pane" id="???">
-      <div class="panel panel-default">
+      <div class="card">
         <div class="panel-heading">Configuration</div>
         <div class="panel-body">
           <ul>
@@ -184,7 +183,7 @@
       </div>
     </div>
     <div role="tabpanel" class="tab-pane" id="acra">
-      <div class="panel panel-default">
+      <div class="card">
         <div class="panel-heading">Configuration</div>
         <div class="panel-body">
           <ul>
