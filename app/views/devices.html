@@ -1,4 +1,5 @@
-<div ng-controller="DevicesCtrl" class="card">
+<div ng-controller="DevicesCtrl" class="container-fluid">
+
   <table class="table table-hover">
     <thead>
       <tr>
@@ -31,97 +32,101 @@
       </tr>
     </tbody>
   </table>
+
   <div ng-if="selectedDevice">
-    <form role="form" class="form-horizontal">
-      <fieldset>
-        <legend>Standard registers</legend>
-      </fieldset>
-      <div class="form-group">
+    <form>
+      <legend class="bg-primary">Standard registers</legend>
+      <fieldset class="form-group">
         <label class="col-sm-2 control-label">Product Code</label>
         <div class="col-sm-10">
           <p class="form-control-static">{{editedDevice.product}}</p>
         </div>
-      </div>
-      <div class="form-group">
+        <small class="text-muted">We'll never share your email with anyone else.</small>
+      </fieldset>
+      <fieldset class="form-group">
         <label class="col-sm-2 control-label">State</label>
         <div class="col-sm-10">
           <p class="form-control-static">{{editedDevice.systemState | systemState}}</p>
         </div>
-      </div>
-      <div class="form-group">
+      </fieldset>
+      <fieldset class="form-group">
         <label class="col-sm-2 control-label">Last Status</label>
         <div class="col-sm-10">
-          <p class="form-control-static">{{editedDevice.lastStatusTime | date:"dd/MM/yyyy @ HH:mm:ss"}}<span ng-show="noSee(editedDevice)" class="label bg-danger">Last Seen </span> {{editedDevice.lastStatusTime | fromNow}} !</p>
-        </div>
-      </div>
-      <fieldset>
-        <div class="form-group">
-          <label class="col-sm-2 control-label">Location</label>
-          <div class="col-sm-10">
-            <input type="text" placeholder="Room Id..." ng-model="editedDevice.location.room_id" required="required" class="form-control"/>
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="col-sm-2 control-label">Address</label>
-          <div class="col-sm-10">
-            <input type="number" placeholder="Not 1 ..." ng-model="editedDevice.address" required="required" min="1" max="255" integer="integer" class="form-control"/><span ng-show="editedDevice.address == 255" class="label bg-danger">Address to be defined</span>
-          </div>
+          <p class="form-control-static">{{editedDevice.lastStatusTime | date:"dd/MM/yyyy @ HH:mm:ss"}}<span ng-show="noSee(editedDevice)" class="label bg-danger">Last Seen </span>            {{editedDevice.lastStatusTime | fromNow}} !</p>
         </div>
       </fieldset>
-      <fieldset disabled="disabled">
-        <div class="form-group">
-          <label class="col-sm-2 control-label">Frequency Channel</label>
-          <div class="col-sm-10">
-            <input type="number" placeholder="Frequency Channel ..." ng-model="editedDevice.frequencyChannel" required="required" min="0" max="255" integer="integer" class="form-control"/>
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="col-sm-2 control-label">Network Id</label>
-          <div class="col-sm-10">
-            <input type="number" placeholder="Network Id ..." ng-model="editedDevice.networkId" required="required" min="0" max="65535" integer="integer" class="form-control"/>
-          </div>
+      <fieldset class="form-group">
+        <label class="col-sm-2 control-label">Location</label>
+        <div class="col-sm-10">
+          <input type="text" placeholder="Room Id..." ng-model="editedDevice.location.room_id" required="required" class="form-control"
+          />
         </div>
       </fieldset>
-      <div class="form-group">
+      <fieldset class="form-group">
+        <label class="col-sm-2 control-label">Address</label>
+        <div class="col-sm-10">
+          <input type="number" placeholder="Not 1 ..." ng-model="editedDevice.address" required="required" min="1" max="255" integer="integer"
+          class="form-control" /><span ng-show="editedDevice.address == 255" class="label bg-danger">Address to be defined</span>
+        </div>
+      </fieldset>
+      <fieldset class="form-group">
+        <label class="col-sm-2 control-label">Frequency Channel</label>
+        <div class="col-sm-10">
+          <input type="number" placeholder="Frequency Channel ..." ng-model="editedDevice.frequencyChannel" required disabled min="0"
+          max="255" integer="integer" class="form-control" />
+        </div>
+      </fieldset>
+      <fieldset class="form-group">
+        <label class="col-sm-2 control-label">Network Id</label>
+        <div class="col-sm-10">
+          <input type="number" placeholder="Network Id ..." ng-model="editedDevice.networkId" required disabled min="0" max="65535"
+          integer="integer" class="form-control" />
+        </div>
+      </fieldset>
+      <fieldset class="form-group">
         <label class="col-sm-2 control-label">Transmit Interval (s)</label>
         <div class="col-sm-10">
-          <input type="number" placeholder="In seconds ..." ng-model="editedDevice.txInterval" required="required" min="0" max="65535" integer="integer" class="form-control"/>
-        </div>
-      </div>
-      <div class="form-group">
-        <div class="col-sm-offset-2 col-sm-10">
-          <button ng-click="reset()" ng-disabled="isUnchanged()" class="btn btn-link">Cancel</button>
-          <button ng-click="delete()" class="btn btn-danger">Delete</button>
-          <button ng-click="update()" ng-disabled="form.$invalid || isUnchanged()" class="btn btn-primary">Save</button>
-        </div>
-      </div>
-      <fieldset>
-        <legend>Config registers</legend>
-        <div ng-repeat="register in editedDevice.configRegisters">
-          <h4>{{register.name}} ({{register.id}}) / {{register.value}}</h4>
-          <div ng-repeat="param in register.params">
-            <div class="form-group">
-              <label class="col-sm-2 control-label">{{param.name}}</label>
-              <div class="col-sm-10">{{getRegisterPartInUnit(register, param, param.units[0])}}
-                <input type="{{param.type}}" title="{{param.name}}" ng-disabled="param.dir == 'output'" ng-model="param.value" required="required" min="0" max="4294967295" integer="integer" class="form-control"/>
-              </div>
-            </div>
-          </div>
-        </div>
-      </fieldset>
-      <fieldset>
-        <legend>Regular registers</legend>
-        <div ng-repeat="register in editedDevice.regularRegisters">
-          <h4>{{register.name}} ({{register.id}}) / {{register.value}}</h4>
-          <div ng-repeat="endpoint in register.endpoints">
-            <div class="form-group">
-              <label class="col-sm-2 control-label">{{endpoint.name}}</label>
-              <div class="col-sm-10">{{getRegisterPartInUnit(register, endpoint, endpoint.units[0])}}
-              </div>
-            </div>
-          </div>
+          <input type="number" placeholder="In seconds ..." ng-model="editedDevice.txInterval" required disabled min="0" max="65535"
+          integer="integer" class="form-control" />
         </div>
       </fieldset>
     </form>
+    <form>
+      <legend class="bg-primary">Config registers</legend>
+      <div ng-repeat="register in editedDevice.configRegisters">
+        <h4>{{register.name}} ({{register.id}}) / {{register.value}}</h4>
+        <div ng-repeat="param in register.params">
+          <fieldset class="form-group">
+            <label class="col-sm-2 control-label">{{param.name}}</label>
+            <div class="col-sm-10">{{getRegisterPartInUnit(register, param, param.units[0])}}
+              <input type="{{param.type}}" title="{{param.name}}" ng-disabled="param.dir == 'output'" ng-model="param.value" required="required"
+              min="0" max="4294967295" integer="integer" class="form-control" />
+            </div>
+          </fieldset>
+        </div>
+      </div>
+    </form>
+    <form>
+      <legend class="bg-primary">Regular registers</legend>
+      <div ng-repeat="register in editedDevice.regularRegisters">
+        <h4>{{register.name}} ({{register.id}}) / {{register.value}}</h4>
+        <div ng-repeat="endpoint in register.endpoints">
+          <fieldset class="form-group">
+            <label class="col-sm-2 control-label">{{endpoint.name}}</label>
+            <div class="col-sm-10">{{getRegisterPartInUnit(register, endpoint, endpoint.units[0])}}
+            </div>
+          </fieldset>
+        </div>
+      </div>
+    </form>
+    <div class="form-group">
+      <div class="col-sm-offset-2 col-sm-10">
+        <button ng-click="reset()" ng-disabled="isUnchanged()" class="btn btn-link">Cancel</button>
+        <button ng-click="delete()" class="btn btn-danger">Delete</button>
+        <button ng-click="update()" ng-disabled="form.$invalid || isUnchanged()" class="btn btn-primary">Save</button>
+      </div>
+    </div>
+
   </div>
+
 </div>

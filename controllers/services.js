@@ -56,9 +56,7 @@ function message_webSocket(user) {
             users[principal] = client;
         }
         client.isOpen = true;
-        connection.send({ type: 'message', message: 'Welcome ' + client.user.principal }, function(current) {
-            return;
-        });
+        websocketClient.send({ type: 'message', message: 'Welcome ' + client.user.principal });
     });
     
     connection.on('message', function(websocketClient, message) {
@@ -77,13 +75,13 @@ function message_webSocket(user) {
                                 sendMessage(connection, message, null, reason);
                             });
                     } else {
-                        sendMessage(connection, message, method.apply(object, message.parameters));
+                        sendMessage(websocketClient, message, method.apply(object, message.parameters));
                     }
                 } else {
-                    sendMessage(connection, message, null, 'Method ' + action[1] + ' does not exist for object ' + action[0]);
+                    sendMessage(websocketClient, message, null, 'Method ' + action[1] + ' does not exist for object ' + action[0]);
                 }
             } else {
-                sendMessage(connection, message, null, 'Object ' + action[0] + ' does not exist');
+                sendMessage(websocketClient, message, null, 'Object ' + action[0] + ' does not exist');
             }
         } else {
             F.emit('websocket:' + message.type, message);
@@ -102,10 +100,9 @@ function message_webSocket(user) {
     });
 }
 
-function sendMessage(connection, message, results, error) {
+function sendMessage(websocketClient, message, results, error) {
     message.return = results;
     message.error = error;
     message.date = new Date();
-    connection.send(message, function(current) {
-    });
+    websocketClient.send(message);
 }

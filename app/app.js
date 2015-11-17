@@ -1,4 +1,4 @@
-var app = angular.module('app', ['ui.router', 'ui.bootstrap', 'domotix.filters']);
+var app = angular.module('app', ['ui.router', 'ui.bootstrap', 'domotix.filters', 'ngToast']);
 
 var pingInterval = null;
 var connectWebsocket = function(websocketService, wsUrl) {

@@ -1,5 +1,5 @@
 app.controller('EventsCtrl', [
-  '$scope', 'rpc', 'ngToast', function($scope, rpc, ngToast) {
+  '$scope', 'websocketService', 'ngToast', function($scope, websocketService, ngToast) {
     $scope.eventTypes = [
       {
         name: 'EAU',
@@ -26,11 +26,11 @@ app.controller('EventsCtrl', [
       }
     ];
     $scope.$watch('eventType', function(newValue, oldValue) {
-      return $scope.eventSubType = void 0;
+      return $scope.eventSubType = null;
     });
+    
     return $scope.createEvent = function() {
-      var eventData;
-      eventData = {
+      var eventData = {
         type: $scope.eventType.name,
         detail: $scope.eventDetail,
         value: $scope.eventValue,
@@ -42,7 +42,7 @@ app.controller('EventsCtrl', [
       if ($scope.eventSubType) {
         eventData.unit = $scope.eventSubType.unit;
       }
-      return ss.rpc('swapserver.createEvent', eventData, function(err, res) {
+      websocketService.rpc('swapserver.createEvent', eventData, function(err, res) {
         if (err) {
           return ngToast.create({
             content: 'Event not created',

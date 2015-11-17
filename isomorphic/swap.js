@@ -155,9 +155,15 @@ getRegisterPartInUnit = function(swapRegister, swapEndpoint, unit) {
   var subValue = null;
   if(swapRegister.value) {
     subValue =  swapRegister.value.slice(parseFloat(swapEndpoint.position), parseFloat(swapEndpoint.position) + parseFloat(swapEndpoint.size));
-    if(swapEndpoint.type === "num") {
+    if(swapEndpoint.type === "number") {
       var res = arrayToInt(subValue);
-      return res * (unit.factor || 1) + (unit.offset || 0);
+      if(unit) {        
+        res = res * (unit.factor || 1) + (unit.offset || 0);
+        if(unit.name) {
+          res += ' ' + unit.name;
+        }
+      }
+      return res;
     } 
   }
   return subValue;
