@@ -13,8 +13,12 @@ F.onAuthorization = function(req, res, flags, callback) {
     var credentials = auth(req);
     if (util.isNullOrUndefined(credentials)) {
         res.statusCode = 401;
-        res.setHeader('WWW-Authenticate', 'Basic realm="example"');
-        res.throw401('Basic realm="example"');
+        if(res.setHeader) {
+            res.setHeader('WWW-Authenticate', 'Basic realm="Domotix"');
+        }
+        if(res.throw401) {            
+            res.throw401('Basic realm="Domotix"');
+        }
         callback(false);
         return;
     }
