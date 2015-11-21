@@ -2,6 +2,10 @@ var util = require("util");
 var serialport = require("serialport");
 var EventEmitter = require("events");
 
+var log4js = require("log4js")
+log4js.configure('configs/log4js_configuration.json', { reloadSecs: 300 });
+var logger = log4js.getLogger(__filename.split("/").pop(-1).split(".")[0]);
+
 /*
 Handles communication to and from serial port and relay the information
 Emits:
@@ -23,14 +27,11 @@ function SerialModem(config) {
             parser: serialport.parsers.readline("\r\n")
         });
         this.serialPort.on("open", function() {
-            //logger.info("Port " + this.path + " opened");
-            this.on("data", (function(_this) {
-            return function(data) {
-                //logger.debug("Received: " + data);
-                return self.emit(swap.MQ.Type.SWAP_PACKET, data);
-            };
-            })(this));
-            return self.emit("started");
+            this.on("data", function(data) {
+                logger.debug("Received: " + data);
+                return self.emit(isomorphic.swap.MQ.Type.SWAP_PACKET, data);
+            });
+            return self.emit("started", {path: this.path});
         });
         this.serialPort.on("close", function() {
             return F.stop();

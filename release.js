@@ -20,13 +20,26 @@ var config = yaml_config.load(__dirname + '/configs/default.yaml');
  */
 
 var options = {};
+options.ip = config.server.host;
 options.port = config.server.port;
 
 var framework = require('total.js');
 framework.global.Config = config;
-framework.on('', function() {
-	this.mail('pochet.romuald@gmail.com', 'Test e-mail', '~email', { name: 'MODEL NAME' });
+
+framework.on('init', function() {
+	console.log('init');
+	//this.mail('pochet.romuald@gmail.com', 'INIT', 'email', { message: 'init' });
 });
-framework.http('debug', options);
+
+framework.on('problem', function(message, name, uri, ip) {
+	console.log('message:', message);
+	console.log('name:', name);
+	console.log('uri:', uri.href);
+	console.log('ip:', ip);
+	
+	//this.mail('pochet.romuald@gmail.com', 'PROBLEM: ' + message, 'email', { message: message, name: name, uri: uri, ip: ip });
+});
+
+framework.http('development', options);
 
 // require('total.js').https('release', options);

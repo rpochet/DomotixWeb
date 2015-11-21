@@ -1,6 +1,7 @@
-default:    
+default:
     server:
-        port: 8080
+        host: 192.168.1.4
+        port: 80
     serial:
         dummy: false
         port: /dev/ttyAMA0
@@ -90,8 +91,18 @@ default:
             standardPressure: 977 # 1013 + compensationAltitude
             minPressure: 944 # 980 + compensationAltitude
             maxPressure: 1004 # 1040 + compensationAltitude
-    
+
+test:
+    server:
+        host: 192.168.1.4
+        port: 8080
+    couchDB:
+        host: 192.168.1.16
+        
 development:
+    server:
+        host: 127.0.0.1
+        port: 8080
     serial:
         dummy: true
     couchDB:

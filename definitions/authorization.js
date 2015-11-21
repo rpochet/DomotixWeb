@@ -8,7 +8,7 @@ var auth = require('basic-auth');
 
 F.onAuthorization = function(req, res, flags, callback) {
 
-	F.log('Authorise request: ', req.uri);
+	//F.log('Authorise request: ', req.uri);
 	
     var credentials = auth(req);
     if (util.isNullOrUndefined(credentials)) {
@@ -29,7 +29,7 @@ F.onAuthorization = function(req, res, flags, callback) {
 }
 
 
-F.onValidation = function(name, value) {
+F.onValidate = function(name, value) {
     switch (name) {
         case 'LoginName':
             return U.isEmail(value);

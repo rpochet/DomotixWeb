@@ -65,7 +65,6 @@ function message_webSocket(user) {
             var object = SOURCE(action[0]);
             if(object) { 
                 var method = object[action[1]];
-                console.log(message.parameters);
                 if(method) { 
                     if(method.then) {
                         method.apply(object, message.parameters)

@@ -8,6 +8,7 @@ var lights = undefined;
 var config = F.global.Config;
 var swap = isomorphic.swap;
 var serialModem = null;
+
 var log4js = require("log4js")
 log4js.configure('configs/log4js_configuration.json', { reloadSecs: 300 });
 var logger = log4js.getLogger(__filename.split("/").pop(-1).split(".")[0]);
@@ -71,6 +72,7 @@ var deleteSwapDevice = function(swapDevice) {
 }
 
 var swapPacketReceived = function(swapPacket) {
+    logger.debug("SWAP Packet received %s", swapPacket);
     var swapDevice = swapDevices["DEV" + swap.num2byte(swapPacket.regAddress)];
     if(swapDevice == undefined) {
         logger.warn(util.format("Unkown SWAP Device address %s", swapPacket.regAddress));
@@ -199,11 +201,12 @@ exports.init = function() {
     
     logger.info("Serial initialisation...");
     serialModem = new SerialModem(config.serial);
-    serialModem.ping();
     serialModem.on("started", function() {
         logger.info("Serial initialised");
+        serialModem.ping();
     });
     serialModem.on(swap.MQ.Type.SWAP_PACKET, function(rawSwapPacket) {
+        logger.debug("Data received from serial %s", rawSwapPacket);
         if(rawSwapPacket[0] == "(") {
             //var ccPacket = new swap.CCPacket(rawSwapPacket.subtr(0, rawSwapPacket.length - 1)); //  # remove \r
             var ccPacket = new swap.CCPacket(rawSwapPacket);

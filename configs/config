@@ -5,7 +5,7 @@ secret                          : secret-key-for-web
 
 // Mail settings
 mail.smtp                       : relay.proximus.be
-mail.smtp.options               : {"secure":false,"port":587,"user":"fc529855@skynet.be","password":"8Vyr7acp","timeout":10000}
+mail.smtp.options               : {"secure":true,"port":465,"user":"fc529855@skynet.be","password":"8Vyr7acp","timeout":10000}
 mail.address.from               : pochet.romuald@gmail.com
 mail.address.reply              : pochet.romuald@gmail.com
 mail.address.bcc                :
