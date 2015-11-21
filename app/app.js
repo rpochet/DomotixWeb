@@ -42,12 +42,17 @@ app.config(function ($stateProvider, $urlRouterProvider) {
       templateUrl: 'views/plugins.html',
       controller: 'PluginsCtrl'
     })
-    //autres routes ...
     .state('admin', {
+      url : '/admin',
+      templateUrl: 'views/admin.html',
+      controller: 'AdminCtrl'
+    })
+    //autres routes ...
+    /*.state('admin', {
       url : '/admin/:matchId',
       templateUrl: 'views/admin.html',
       controller: 'AdminCtrl'
-    });
+    })*/;
 });
 
 app.run(function($rootScope, $window, $uibModal, websocketService) {

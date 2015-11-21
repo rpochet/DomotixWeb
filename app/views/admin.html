@@ -1,18 +1,18 @@
 <div ng-controller="AdminCtrl" class="tab-pane">
   
-  <!-- Nav tabs -->
+  <!-- Nav tabs
   <ul class="nav nav-tabs" role="tablist">
-    <li class="nav-item"><a class="nav-link" href="#android" aria-controls="android" role="tab" data-toggle="tab">Android</a></li>
-    <li class="nav-item"><a class="nav-link" href="#network" aria-controls="network" role="tab" data-toggle="tab">Network</a></li>
-    <li class="nav-item"><a class="nav-link" href="#messages" aria-controls="messages" role="tab" data-toggle="tab">Messages</a></li>
-    <li class="nav-item"><a class="nav-link" href="#couchdb" aria-controls="couchdb" role="tab" data-toggle="tab">Couch DB</a></li>
-    <li class="nav-item"><a class="nav-link" href="#rabbitmq" aria-controls="rabbitmq" role="tab" data-toggle="tab">Rabbit MQ</a></li>
-    <li class="nav-item"><a class="nav-link" href="#" aria-controls="" role="tab" data-toggle="tab"></a></li>
-    <li class="nav-item"><a class="nav-link" href="#acra" aria-controls="acra" role="tab" data-toggle="tab">ACRA</a></li>
-  </ul>
+    <li class="nav-item"><a class="nav-link" href="#/admin#android" role="tab" data-toggle="tab">Android</a></li>
+    <li class="nav-item"><a class="nav-link" href="#/admin#network" role="tab" data-toggle="tab">Network</a></li>
+    <li class="nav-item"><a class="nav-link" href="#/admin#messages" role="tab" data-toggle="tab">Messages</a></li>
+    <li class="nav-item"><a class="nav-link" href="#/admin#couchdb" role="tab" data-toggle="tab">Couch DB</a></li>
+    <li class="nav-item"><a class="nav-link" href="#/admin#rabbitmq" role="tab" data-toggle="tab">Rabbit MQ</a></li>
+    <li class="nav-item"><a class="nav-link" href="#/admin#???" role="tab" data-toggle="tab">???</a></li>
+    <li class="nav-item"><a class="nav-link" href="#/admin#acra" role="tab" data-toggle="tab">ACRA</a></li>
+  </ul> -->
 
   <!-- Tab panes -->
-  <div class="tab-content">
+  <!-- <div class="tab-content"> -->
     <div role="tabpanel" class="tab-pane active" id="android">
       <div class="card">
         <div class="panel-heading">Android Application</div>
@@ -70,9 +70,9 @@
               <form role="form">
                 <div class="form-group">
                   <div class="input-group">
-                    <div class="input-group-addon"><span ng-click="decodeMessage(rawMessage)" class="glyphicon glyphicon-refresh"></span></div>
-                    <div class="input-group-addon"><span ng-click="sendMessage(decodedMessage)" class="glyphicon glyphicon-play" title="Send message"></span></div>
-                    <div class="input-group-addon"><span ng-click="messageFromCloud(decodedMessage)" class="glyphicon glyphicon-cloud" title="Simulate message"></span></div>
+                    <div class="input-group-addon"><span ng-click="decodeMessage(rawMessage)" class="fa fa-refresh"></span></div>
+                    <div class="input-group-addon"><span ng-click="sendMessage(decodedMessage)" class="fa fa-play" title="Send message"></span></div>
+                    <div class="input-group-addon"><span ng-click="messageFromCloud(decodedMessage)" class="fa fa-cloud" title="Simulate message"></span></div>
                     <input type="text" placeholder="SWAP Packet" size="40" ng-model="rawMessage" ng-change="decodeMessage(rawMessage)" class="form-control"/>
                   </div>
                 </div>
@@ -193,6 +193,6 @@
         </div>
       </div>
     </div>
-  </div>
+  <!-- </div> -->
   
 </div>
