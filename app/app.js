@@ -113,6 +113,12 @@ app.run(function($rootScope, websocketService) {
         return $rootScope.lights = lights;
       });
     };
+      
+    $rootScope.refreshState = function(force) {
+      websocketService.rpc(force || false ? 'swapserver.refreshState' : 'swapserver.getState').then(function(state) {
+        return $rootScope.state = state;
+      });
+    };
     
     $rootScope.sendMessage = function(message) {      
       var swap = isomorphic.swap;

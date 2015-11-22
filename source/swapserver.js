@@ -184,16 +184,16 @@ var swapPacketReceived = function(swapPacket) {
 var handleSwapPacket = function(swapPacket, swapDevice, register) {
     if(swapDevice.product.productCode == swap.LightController.productCode) {
         if(register.id == swap.LightController.Registers.Outputs.id) {
-            state.saveState(swapDevice._id, swap.MQ.Type.LIGHT_STATUS, register.value);
+            state.saveState(swap.MQ.Type.LIGHT_STATUS, swapDevice._id, register.value);
         } else if(register.id == swap.LightController.Registers.PressureTemperature.id) {
-            state.saveState(swapDevice._id, swap.MQ.Type.PRESSURE, register.value);
-            state.saveState(swapDevice._id, swap.MQ.Type.TEMPERATURE, register.value);
+            state.saveState(swap.MQ.Type.PRESSURE, swapDevice._id, register.value);
+            state.saveState(swap.MQ.Type.TEMPERATURE, swapDevice._id, register.value);
         }
     } else if(swapDevice.product.productCode == swap.LightSwitch.productCode) {
         if(register.id == swap.LightSwitch.Registers.Voltage.id) {
-            state.saveState(swapDevice._id, swap.MQ.Type.VOLTAGE, register.value);
+            state.saveState(swap.MQ.Type.VOLTAGE, swapDevice._id, register.value);
         } else if(register.id == swap.LightSwitch.Registers.Temperature.id) {
-            state.saveState(swapDevice._id, swap.MQ.Type.TEMPERATURE, register.value);
+            state.saveState(swap.MQ.Type.TEMPERATURE, swapDevice._id, register.value);
         }
     }
 };
@@ -338,6 +338,14 @@ exports.refreshLights = function() {
             });
         });
     });
+};
+
+exports.refreshState = function() {
+    state.refreshState();
+};
+
+exports.getState = function() {
+    return state.getState();
 };
     
 exports.sendSwapQuery = function(regAddress, regId) {

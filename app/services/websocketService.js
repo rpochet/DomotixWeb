@@ -15,7 +15,7 @@ app.factory('websocketService', ['$rootScope', '$q', function($rootScope, $q) {
             }
             delete deferred[data.sid];
         } else if(data.type == 'event') {
-            $rootScope.$broadcast(data.event, data);
+            $rootScope.$broadcast(data.event, data.data);
         } else {
             $rootScope.$broadcast('websocket:message', data);
         }

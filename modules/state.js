@@ -12,14 +12,14 @@ Emits:
  */
 function State(config) {
     EventEmitter.call(this);
-    this.states = new Array();
+    this.states = {};
 }
 
 util.inherits(State, EventEmitter);
 
 State.prototype.saveState = function(type, id, value) {
     if(this.states[type] == undefined) {
-        this.states[type] = new Array();
+        this.states[type] = {};
     }
     this.states[type][id] = {
         "date": new Date(),
@@ -34,6 +34,14 @@ State.prototype.getStates = function() {
 
 State.prototype.getState = function(type) {
     return this.states[type];
+};
+
+State.prototype.refreshState = function(type) {
+    logger.info("State initialisation...");
+    MODEL("state").getState().then(function(data) {
+        state = data;
+        logger.info("State initialised");
+    });
 };
 
 State.prototype.close = function() {
