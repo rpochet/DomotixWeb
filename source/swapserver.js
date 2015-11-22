@@ -28,10 +28,13 @@ var sendSwapPacket = function(functionCode, address, registerId, regValue) {
     if(regValue) {        
         swapPacket.regValue = regValue;
     }
+    sendSwapPacket(swapPacket);
+}
     
-    var swapDevice = swapDevices["DEV" + swap.num2byte(address)];
+var sendSwapPacket = function(swapPacket) {
+    var swapDevice = swapDevices["DEV" + swap.num2byte(swapPacket.regAddress)];
     if(swapDevice == undefined) {
-        logger.error("Unkown SWAP Device address %s", address);
+        logger.error("Unkown SWAP Device address %s", swapPacket.regAddress);
     }
     
     if(swapDevice.pwrdownmode){
@@ -215,12 +218,11 @@ exports.init = function() {
             if(ccPacket.data) {                
                 var swapPacket = new swap.SwapPacket(ccPacket);
                 swapPacketReceived(swapPacket);
-            }
-            else {
-                //logger.warn "Unknown data received from Serial Bridge: #{rawSwapPacket} but must be a CCPacket"
+            } else {
+                logger.warn("Unknown data received from Serial Bridge: must be a CCPacket");
             }
         } else {   
-            //logger.warn "Unknown data received from Serial Bridge: #{rawSwapPacket} but must be like '(xxxx)yyyyyy'"
+            logger.warn("Unknown data received from Serial Bridge: must be like '(xxxx)yyyyyy'");
         }
     });
     
@@ -232,18 +234,12 @@ exports.init = function() {
     });
     udpBridge.on(swap.MQ.Type.SWAP_PACKET, function(rawSwapPacket) {
         logger.debug("Data received from UDP Bridge %s", rawSwapPacket);
-        if(rawSwapPacket[0] == "(") {
-            //var ccPacket = new swap.CCPacket(rawSwapPacket.subtr(0, rawSwapPacket.length - 1)); //  # remove \r
-            var ccPacket = new swap.CCPacket(rawSwapPacket);
-            if(ccPacket.data) {                
-                var swapPacket = new swap.SwapPacket(ccPacket);
-                swapPacketReceived(swapPacket);
-            }
-            else {
-                //logger.warn "Unknown data received from Serial Bridge: #{rawSwapPacket} but must be a CCPacket"
-            }
-        } else {   
-            //logger.warn "Unknown data received from Serial Bridge: #{rawSwapPacket} but must be like '(xxxx)yyyyyy'"
+        var ccPacket = new swap.CCPacket(rawSwapPacket);
+        if(ccPacket.data) {                
+            var swapPacket = new swap.SwapPacket(ccPacket);
+            sendSwapPacket(swapPacket);
+        } else {
+            logger.warn("Unknown data received from Serial Bridge: must be a CCPacket");
         }
     });
 };
