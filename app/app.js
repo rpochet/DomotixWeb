@@ -63,7 +63,7 @@ app.run(function($rootScope, $window, $uibModal, websocketService) {
     $rootScope.refreshLights();
     $rootScope.refreshLevels();
     $rootScope.refreshDevices();
-    $rootScope.refreshState();
+    $rootScope.refreshState(true);
     
     console.log('Connection back up :-)');
     //$('#warning').modal('hide')

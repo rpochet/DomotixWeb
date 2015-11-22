@@ -25,6 +25,7 @@ State.prototype.saveState = function(type, id, value) {
         "date": new Date(),
         "value": value
     };
+    this.states.last = type + "/" + id;
     this.emit("state_updated", this.states);
 };
 
@@ -33,7 +34,11 @@ State.prototype.getStates = function() {
 };
 
 State.prototype.getState = function(type) {
-    return this.states[type];
+    if(type) {
+        return this.states[type];
+    } else {
+        return this.states;
+    }
 };
 
 State.prototype.refreshState = function(type) {

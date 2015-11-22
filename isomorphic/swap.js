@@ -170,14 +170,14 @@ getRegisterPartInUnit = function(swapRegister, swapEndpoint, unit) {
 };
 
 getTemperature = function(swapPacket) {
-  return (swapPacket.value[0] * 256 + swapPacket.value[1]) / 100;
+  return (swapPacket.regValue[0] * 256 + swapPacket.regValue[1]) / 100;
 };
 
 getPressure = function(swapPacket) {
-  if (swapPacket.value.length !== 6) {
+  if (swapPacket.regValue.length !== 6) {
     return "N.A";
   }
-  return (swapPacket.value[2] * 256 * 256 * 256 + swapPacket.value[3] * 256 * 256 + swapPacket.value[4] * 256 + swapPacket.value[5]) / 100;
+  return (swapPacket.regValue[2] * 256 * 256 * 256 + swapPacket.regValue[3] * 256 * 256 + swapPacket.regValue[4] * 256 + swapPacket.regValue[5]) / 100;
 };
 
 Address = {
@@ -318,8 +318,8 @@ MQ = {
     SWAP_DEVICE: "SWAP_DEVICE",
     SWAP_EVENT: "SWAP_EVENT",
     LIGHT_STATUS: "LIGHT_STATUS",
-    TEMPERATURE: "TEMPERATURE",
-    PRESSURE: "PRESSURE",
+    TEMPERATURE: "Temperature",
+    PRESSURE: "Pressure",
     VOLTAGE: "VOLTAGE",
     CLIENTS: "CLIENTS",
     _ALL: "_ALL"

@@ -44,82 +44,44 @@ app.controller('DomotixCtrl', [
       }
     };
     
-    $scope.$on(swap.MQ.Type.SWAP_DEVICE, function() {
+    $scope.$on(swap.MQ.Type.SWAP_DEVICE, function(event, swapDevice) {
       websocketService.rpc('swapserver.getSwapDevices').then(function(devices) {
         return $scope.devices = devices;
       });
     });
     
-    $scope.$on(swap.MQ.Type.TEMPERATURE, function(temperature) {
+    $scope.$on(swap.MQ.Type.TEMPERATURE, function(event, temperature) {
       return displayTemperature(temperature);
     });
     
-    $scope.$on(swap.MQ.Type.PRESSURE, function(pressure) {
+    $scope.$on(swap.MQ.Type.PRESSURE, function(event, pressure) {
       return displayPressure(pressure);
     });
     
-    $scope.$on('lightStatusUpdated', function(lightStatus) {
-      return $scope.$apply(function() {
-        var j, len, level, ref, results;
-        ref = $scope.levels;
-        results = [];
-        for (j = 0, len = ref.length; j < len; j++) {
-          level = ref[j];
-          results.push((function(level) {
-            var k, len1, ref1, results1, room;
-            ref1 = level.rooms;
-            results1 = [];
-            for (k = 0, len1 = ref1.length; k < len1; k++) {
-              room = ref1[k];
-              results1.push((function(room) {
-                var l, len2, light, ref2, results2;
-                ref2 = room.lights;
-                results2 = [];
-                for (l = 0, len2 = ref2.length; l < len2; l++) {
-                  light = ref2[l];
-                  results2.push((function(light) {
-                    if (lightStatus.regAddress === light.swapDeviceAddress) {
-                      return light.status = lightStatus.value[light.outputNb];
-                    }
-                  })(light));
-                }
-                return results2;
-              })(room));
-            }
-            return results1;
-          })(level));
-        }
-        return results;
+    $scope.$on(swap.MQ.Type.LIGHT_STATUS, function(event, lightStatus) {
+      $scope.$apply(function() {
+        angular.forEach($scope.levels, function(level) {
+          angular.forEach(level.rooms, function(room) {
+            angular.forEach(room.lights, function(light) {
+              if (lightStatus[light.swapDeviceAddress]) {
+                light.status = lightStatus[light.swapDeviceAddress].value[light.outputNb];
+                return;
+              }
+            });
+          });
+        });
       });
     });
     
     displayTemperature = function(temperature) {
-      $scope.temperature = {};
-      return $scope.$apply(function() {
-        var devAddr, temp;
-        for (devAddr in temperature) {
-          temp = temperature[devAddr];
-          $scope.temperature[devAddr] = {};
-          $scope.temperature[devAddr].temperature = temp;
-          $scope.temperature[devAddr].location = $scope.devices['DEV' + swap.num2byte(devAddr)].location;
-          $scope.devices['DEV' + swap.num2byte(devAddr)].temperature = temp;
-          return;
-        }
+      angular.forEach(temperature, function(temperature, devAddr) {
+          $scope.devices['DEV' + swap.num2byte(devAddr)].temperature = temperature;
       });
     };
     
     displayPressure = function(pressure) {
-      $scope.pressure = {};
-      return $scope.$apply(function() {
-        var devAddr, pres;
-        for (devAddr in pressure) {
-          pres = pressure[devAddr];
-          $scope.pressure[devAddr] = {};
-          $scope.pressure[devAddr].pressure = pres;
-          $scope.pressure[devAddr].location = $scope.devices['DEV' + swap.num2byte(devAddr)].location;
-          $scope.devices['DEV' + swap.num2byte(devAddr)].pressure = pres;
-          return;
-        }
+      angular.forEach(pressure, function(pressure, devAddr) {
+          $scope.devices['DEV' + swap.num2byte(devAddr)].pressure = pressure;
       });
     };
     

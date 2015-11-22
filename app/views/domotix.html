@@ -27,8 +27,8 @@
             <path id="room{{room.id}}" d="{{room.path}}" fill="white" stroke="#428bca" stroke-width="3"></path>
             <use ng-repeat="light in room.lights" id="light-{{light.swapDeviceAddress}}-{{light.outputNb}}" x="{{lightPosition(room, light)[0]}}" y="{{lightPosition(room, light)[1]}}" xlink:href="{{lightDef(room, light)}}" fill="{{lightFill(room, light)}}"></use>
             <g ng-repeat="device in devices | objectToArray | filter: { location: { room_id: room.id }}">
-              <text x="{{devicePosition(device)[0]}}" y="{{devicePosition(device)[1]}}" ng-show="device.temperature">{{device.temperature}} °C</text>
-              <text x="{{devicePosition(device)[0]}}" y="{{devicePosition(device)[1] + 20}}" ng-show="device.pressure">{{device.pressure}} mbar</text>
+              <text x="{{devicePosition(device)[0]}}" y="{{devicePosition(device)[1]}}" ng-show="device.temperature">{{device.temperature.value}}</text>
+              <text x="{{devicePosition(device)[0]}}" y="{{devicePosition(device)[1] + 20}}" ng-show="device.pressure">{{device.pressure.value}}</text>
             </g>
           </g>
         </svg>

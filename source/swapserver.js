@@ -81,7 +81,7 @@ var deleteSwapDevice = function(swapDevice) {
 var swapPacketReceived = function(swapPacket) {
     logger.debug("SWAP Packet received %s", swapPacket);
     var swapDevice = swapDevices["DEV" + swap.num2byte(swapPacket.regAddress)];
-    var register = null;
+    var swapRegister = null;
     if(swapDevice == undefined) {
         logger.warn(util.format("Unkown SWAP Device address %s", swapPacket.regAddress));
         if(newSwapDevice == undefined) {
@@ -144,10 +144,12 @@ var swapPacketReceived = function(swapPacket) {
             swapDevice.txInterval = swap.arrayToInt(swapPacket.regValue);
             break;
         default:
-            register = getRegister(swapDevice, swapPacket.regId);
-            if(register) {
-                register.value = swapPacket.regValue;
-                logger.info(util.format("New value for register %s for SWAP Device %s", register.name, swapPacket.regAddress));
+            if(swapDevice) {
+                swapRegister = getRegister(swapDevice, swapPacket.regId);
+                if(swapRegister) {
+                    swapRegister.value = swapPacket.regValue;
+                    logger.info(util.format("New value for register %s for SWAP Device %s", swapRegister.name, swapPacket.regAddress));
+                }
             }
             break;
     }
@@ -177,23 +179,24 @@ var swapPacketReceived = function(swapPacket) {
     }
     
     if(swapDevice) {
-        handleSwapPacket(swapPacket, swapDevice, register);
+        handleSwapPacket(swapPacket, swapDevice, swapRegister);
     }
 };
 
-var handleSwapPacket = function(swapPacket, swapDevice, register) {
+var handleSwapPacket = function(swapPacket, swapDevice, swapRegister) {
     if(swapDevice.product.productCode == swap.LightController.productCode) {
-        if(register.id == swap.LightController.Registers.Outputs.id) {
-            state.saveState(swap.MQ.Type.LIGHT_STATUS, swapDevice._id, register.value);
-        } else if(register.id == swap.LightController.Registers.PressureTemperature.id) {
-            state.saveState(swap.MQ.Type.PRESSURE, swapDevice._id, register.value);
-            state.saveState(swap.MQ.Type.TEMPERATURE, swapDevice._id, register.value);
+        if(swapRegister.id == swap.LightController.Registers.Outputs.id) {
+            state.saveState(swap.MQ.Type.LIGHT_STATUS, swapDevice.address, swapRegister.regValue);
+        } else if(swapRegister.id == swap.LightController.Registers.PressureTemperature.id) {
+            swapRegister.endpoints.forEach(function(endpoint) {
+                state.saveState(endpoint.name, swapDevice.address, swap.getRegisterPartInUnit(swapRegister, endpoint, endpoint.units[0]));
+            });
         }
     } else if(swapDevice.product.productCode == swap.LightSwitch.productCode) {
-        if(register.id == swap.LightSwitch.Registers.Voltage.id) {
-            state.saveState(swap.MQ.Type.VOLTAGE, swapDevice._id, register.value);
-        } else if(register.id == swap.LightSwitch.Registers.Temperature.id) {
-            state.saveState(swap.MQ.Type.TEMPERATURE, swapDevice._id, register.value);
+        if(swapRegister.id == swap.LightSwitch.Registers.Voltage.id) {
+            state.saveState(swap.MQ.Type.VOLTAGE, swapDevice.address, swapRegister.regValue);
+        } else if(swapRegister.id == swap.LightSwitch.Registers.Temperature.id) {
+            state.saveState(swap.MQ.Type.TEMPERATURE, swapDevice.address, swap.getRegisterPartInUnit(swapRegister, swapRegister.endpoints[0], swapRegister.endpoints[0].units[0]));
         }
     }
 };
@@ -266,8 +269,9 @@ exports.init = function() {
     
     logger.info("State initialisation...");
     state = new State(config.state);
-    state.on("state_updated", function(states) {
-        F.emit(swap.MQ.Type._ALL, "state_updated", states);
+    state.on("state_updated", function(state) {
+        var stateType = state.last.split("/")[0];
+        F.emit(swap.MQ.Type._ALL, stateType, state[stateType]);
     });
     logger.info("State initialised");
 };
@@ -341,11 +345,18 @@ exports.refreshLights = function() {
 };
 
 exports.refreshState = function() {
-    state.refreshState();
+    this.emitState();
+    //state.refreshState();
 };
 
 exports.getState = function() {
     return state.getState();
+};
+
+exports.emitState = function() {
+    for(var stateType in state.getState()) {
+        F.emit(swap.MQ.Type._ALL, stateType, state[stateType]);
+    }
 };
     
 exports.sendSwapQuery = function(regAddress, regId) {
