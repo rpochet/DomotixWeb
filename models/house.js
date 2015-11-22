@@ -1,7 +1,7 @@
 exports.id = 'house';
 exports.version = '1.0.0';
 
-var DATABASE_NAME  = 'panstamp';
+var DATABASE_NAME  = 'domotix';
 var LEVELS_VIEW_NAMESPACE = 'domotix';
 var LEVELS_VIEW_NAME = 'levels';
 var LIGHTS_DOCUMENT_NAME = 'lights';

@@ -19,7 +19,7 @@ function SerialModem(config) {
     var self = this;
     this.config = config;
     if(config.dummy) {
-        return self.emit("started");
+        self.emit("started");
     } else {
         this.syncword = "qds";
         this.serialPort = new serialport.SerialPort(config.port, {
@@ -31,10 +31,10 @@ function SerialModem(config) {
                 logger.debug("Received: " + data);
                 return self.emit(isomorphic.swap.MQ.Type.SWAP_PACKET, data);
             });
-            return self.emit("started", {path: this.path});
+            self.emit("started", {path: this.path});
         });
         this.serialPort.on("close", function() {
-            return F.stop();
+            F.stop();
         });
     }
 }

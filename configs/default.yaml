@@ -98,15 +98,15 @@ test:
         port: 8080
     couchDB:
         host: 192.168.1.14
-        
+
 development:
     server:
         host: 127.0.0.1
         port: 8080
     serial:
         dummy: true
-    couchDB:
-        host: 127.0.0.1
+    #couchDB:
+        #host: 127.0.0.1
     broker:
         udp:
             inhost: 192.168.1.14

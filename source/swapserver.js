@@ -2,6 +2,7 @@ var util = require("util");
 var clone = require('clone');
 var SerialModem = MODULE("serial")
 var UdpBridge = MODULE("udpbridge")
+var State = MODULE("state")
 var swapProducts = undefined;
 var swapDevices = undefined;
 var levels = undefined;
@@ -10,6 +11,7 @@ var config = F.global.Config;
 var swap = isomorphic.swap;
 var serialModem = null;
 var udpBridge = null;
+var state = null;
 
 var log4js = require("log4js")
 log4js.configure('configs/log4js_configuration.json', { reloadSecs: 300 });
@@ -18,7 +20,7 @@ var logger = log4js.getLogger(__filename.split("/").pop(-1).split(".")[0]);
 var newSwapDevice = undefined;
 var newSwapDeviceCleaner = undefined;
 
-var sendSwapPacket = function(functionCode, address, registerId, regValue) {
+var sendSwapPacketArgs = function(functionCode, address, registerId, regValue) {
     var swapPacket = new swap.SwapPacket();
     swapPacket.source = config.network.address;
     swapPacket.dest = address;
@@ -79,6 +81,7 @@ var deleteSwapDevice = function(swapDevice) {
 var swapPacketReceived = function(swapPacket) {
     logger.debug("SWAP Packet received %s", swapPacket);
     var swapDevice = swapDevices["DEV" + swap.num2byte(swapPacket.regAddress)];
+    var register = null;
     if(swapDevice == undefined) {
         logger.warn(util.format("Unkown SWAP Device address %s", swapPacket.regAddress));
         if(newSwapDevice == undefined) {
@@ -141,7 +144,7 @@ var swapPacketReceived = function(swapPacket) {
             swapDevice.txInterval = swap.arrayToInt(swapPacket.regValue);
             break;
         default:
-            var register = getRegister(swapDevice, swapPacket.regId);
+            register = getRegister(swapDevice, swapPacket.regId);
             if(register) {
                 register.value = swapPacket.regValue;
                 logger.info(util.format("New value for register %s for SWAP Device %s", register.name, swapPacket.regAddress));
@@ -171,6 +174,27 @@ var swapPacketReceived = function(swapPacket) {
         swapDevice.nonce = swapPacket.nonce;
         swapDevice.lastStatusTime = swapPacket.time;
         saveSwapDevice(swapDevice);
+    }
+    
+    if(swapDevice) {
+        handleSwapPacket(swapPacket, swapDevice, register);
+    }
+};
+
+var handleSwapPacket = function(swapPacket, swapDevice, register) {
+    if(swapDevice.product.productCode == swap.LightController.productCode) {
+        if(register.id == swap.LightController.Registers.Outputs.id) {
+            state.saveState(swapDevice._id, swap.MQ.Type.LIGHT_STATUS, register.value);
+        } else if(register.id == swap.LightController.Registers.PressureTemperature.id) {
+            state.saveState(swapDevice._id, swap.MQ.Type.PRESSURE, register.value);
+            state.saveState(swapDevice._id, swap.MQ.Type.TEMPERATURE, register.value);
+        }
+    } else if(swapDevice.product.productCode == swap.LightSwitch.productCode) {
+        if(register.id == swap.LightSwitch.Registers.Voltage.id) {
+            state.saveState(swapDevice._id, swap.MQ.Type.VOLTAGE, register.value);
+        } else if(register.id == swap.LightSwitch.Registers.Temperature.id) {
+            state.saveState(swapDevice._id, swap.MQ.Type.TEMPERATURE, register.value);
+        }
     }
 };
 
@@ -213,7 +237,6 @@ exports.init = function() {
     serialModem.on(swap.MQ.Type.SWAP_PACKET, function(rawSwapPacket) {
         logger.debug("Data received from serial %s", rawSwapPacket);
         if(rawSwapPacket[0] == "(") {
-            //var ccPacket = new swap.CCPacket(rawSwapPacket.subtr(0, rawSwapPacket.length - 1)); //  # remove \r
             var ccPacket = new swap.CCPacket(rawSwapPacket);
             if(ccPacket.data) {                
                 var swapPacket = new swap.SwapPacket(ccPacket);
@@ -234,14 +257,19 @@ exports.init = function() {
     });
     udpBridge.on(swap.MQ.Type.SWAP_PACKET, function(rawSwapPacket) {
         logger.debug("Data received from UDP Bridge %s", rawSwapPacket);
-        var ccPacket = new swap.CCPacket(rawSwapPacket);
+        var ccPacket = new swap.CCPacket('(0000)' + rawSwapPacket);
         if(ccPacket.data) {                
             var swapPacket = new swap.SwapPacket(ccPacket);
             sendSwapPacket(swapPacket);
-        } else {
-            logger.warn("Unknown data received from Serial Bridge: must be a CCPacket");
         }
     });
+    
+    logger.info("State initialisation...");
+    state = new State(config.state);
+    state.on("state_updated", function(states) {
+        F.emit(swap.MQ.Type._ALL, "state_updated", states);
+    });
+    logger.info("State initialised");
 };
 
 exports.getSwapProducts = function() {
@@ -314,17 +342,17 @@ exports.refreshLights = function() {
     
 exports.sendSwapQuery = function(regAddress, regId) {
     logger.info("Sending SwapQuery to register %s on device %s...", regId, regAddress);
-    sendSwapPacket(swap.Functions.QUERY, regAddress, regId);
+    sendSwapPacketArgs(swap.Functions.QUERY, regAddress, regId);
 };
 
 exports.sendSwapCommand = function(regAddress, regId, regValue) {
     logger.info("Sending SwapCommand to register %s on device %s with data %s...", regId, regAddress, regValue);
-    sendSwapPacket(swap.Functions.COMMAND, regAddress, regId, regValue);
+    sendSwapPacketArgs(swap.Functions.COMMAND, regAddress, regId, regValue);
 };
     
 exports.sendSwapPacket = function(func, regAddress, regId, regValue) {
     logger.info("Sending SwapPacket %s to register %s on device %s with data %s...", func, regId, regAddress, regValue);
-    sendSwapPacket(func, regAddress, regId, regValue);
+    sendSwapPacketArgs(func, regAddress, regId, regValue);
 };
 
 exports.messageFromCloud = function(rawSwapPacket) {

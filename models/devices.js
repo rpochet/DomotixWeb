@@ -1,7 +1,7 @@
 exports.id = 'devices';
 exports.version = '1.0.0';
 
-var DATABASE_NAME  = 'panstamp';
+var DATABASE_NAME  = 'domotix';
 var DEVICES_VIEW_NAMESPACE = 'domotix';
 var DEVICES_VIEW_NAME = 'devices';
 var $q = require('q');

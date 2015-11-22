@@ -95,7 +95,9 @@ function message_webSocket(user) {
         var message = {};
         message.type = "event";
         message.event = event;
-        sendMessage(connection, message, data);
+        message.data = data;
+        message.date = new Date();
+        connection.send(message);
     });
 }
 
