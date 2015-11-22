@@ -4,6 +4,7 @@ var poolr  = require("poolr").createPool;
 var dbURL = "http://" + config.couchDB.host + ":" + config.couchDB.port;
 var db = new(cradle.Connection)(dbURL);
 var cache = {};
+console.log('CouchDB url is ' + dbURL);
 
 F.database = function(name) {
   var cached = cache[name];

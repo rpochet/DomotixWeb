@@ -25,7 +25,7 @@ default:
             password: domotix
             vhost: /domotix
         udp:
-            inhost: localhost
+            inhost: 192.168.1.4
             inport: 5555
             outhost: 192.168.1.255
             outport: 5556
@@ -97,7 +97,7 @@ test:
         host: 192.168.1.4
         port: 8080
     couchDB:
-        host: 192.168.1.16
+        host: 192.168.1.14
         
 development:
     server:
@@ -107,3 +107,6 @@ development:
         dummy: true
     couchDB:
         host: 127.0.0.1
+    broker:
+        udp:
+            inhost: 192.168.1.14

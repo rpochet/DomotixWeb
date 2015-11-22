@@ -4,9 +4,8 @@ app.controller('DomotixCtrl', [
     var displayPressure, displayTemperature, displayTemperaturePressure;
     
     $scope.handleSvgClick = function($event, level) {
-      var x = $event.offsetX;
-      var y = $event.offsetY;
-      console.log('Click on ' + x + ', ' + y);
+      var x = $event.offsetX / $event.currentTarget.clientWidth * level.width;
+      var y = $event.offsetY / $event.currentTarget.clientHeight * level.height;
       angular.forEach(level.rooms, function(room, idx) {
         angular.forEach(room.lights, function(light, idx) {
           var pos = $scope.lightPosition(room, light);
@@ -123,6 +122,7 @@ app.controller('DomotixCtrl', [
         }
       });
     };
+    
     displayTemperaturePressure = function() {
       return websocketService.rpc('swapserver.getTemperature').then(function(temperature) {
         displayTemperature(temperature);

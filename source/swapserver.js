@@ -1,6 +1,7 @@
 var util = require("util");
 var clone = require('clone');
 var SerialModem = MODULE("serial")
+var UdpBridge = MODULE("udpbridge")
 var swapProducts = undefined;
 var swapDevices = undefined;
 var levels = undefined;
@@ -8,6 +9,7 @@ var lights = undefined;
 var config = F.global.Config;
 var swap = isomorphic.swap;
 var serialModem = null;
+var udpBridge = null;
 
 var log4js = require("log4js")
 log4js.configure('configs/log4js_configuration.json', { reloadSecs: 300 });
@@ -29,13 +31,13 @@ var sendSwapPacket = function(functionCode, address, registerId, regValue) {
     
     var swapDevice = swapDevices["DEV" + swap.num2byte(address)];
     if(swapDevice == undefined) {
-        logger.error(util.format("Unkown SWAP Device address %s", address));
+        logger.error("Unkown SWAP Device address %s", address);
     }
     
     if(swapDevice.pwrdownmode){
         //addSwapPacketInQueue(swapDevice, swapPacket);
     } else {
-        logger.info(util.format("Sending SWAP Packet %s", swapPacket));
+        logger.debug("Sending SWAP Packet %s", swapPacket);
         serialModem.send(swapPacket);
         //addSwapPacket(swapPacket);
     }
@@ -199,14 +201,37 @@ exports.init = function() {
     
     this.refreshSwapDevices();
     
-    logger.info("Serial initialisation...");
+    logger.info("Serial Modem initialisation...");
     serialModem = new SerialModem(config.serial);
     serialModem.on("started", function() {
-        logger.info("Serial initialised");
+        logger.info("Serial Modem initialised");
         serialModem.ping();
     });
     serialModem.on(swap.MQ.Type.SWAP_PACKET, function(rawSwapPacket) {
         logger.debug("Data received from serial %s", rawSwapPacket);
+        if(rawSwapPacket[0] == "(") {
+            //var ccPacket = new swap.CCPacket(rawSwapPacket.subtr(0, rawSwapPacket.length - 1)); //  # remove \r
+            var ccPacket = new swap.CCPacket(rawSwapPacket);
+            if(ccPacket.data) {                
+                var swapPacket = new swap.SwapPacket(ccPacket);
+                swapPacketReceived(swapPacket);
+            }
+            else {
+                //logger.warn "Unknown data received from Serial Bridge: #{rawSwapPacket} but must be a CCPacket"
+            }
+        } else {   
+            //logger.warn "Unknown data received from Serial Bridge: #{rawSwapPacket} but must be like '(xxxx)yyyyyy'"
+        }
+    });
+    
+    logger.info("UDP Bridge initialisation...");
+    udpBridge = new UdpBridge(config.broker);
+    udpBridge.on("started", function() {
+        logger.info("UDP Bridge initialised");
+        udpBridge.ping();
+    });
+    udpBridge.on(swap.MQ.Type.SWAP_PACKET, function(rawSwapPacket) {
+        logger.debug("Data received from UDP Bridge %s", rawSwapPacket);
         if(rawSwapPacket[0] == "(") {
             //var ccPacket = new swap.CCPacket(rawSwapPacket.subtr(0, rawSwapPacket.length - 1)); //  # remove \r
             var ccPacket = new swap.CCPacket(rawSwapPacket);
@@ -292,17 +317,17 @@ exports.refreshLights = function() {
 };
     
 exports.sendSwapQuery = function(regAddress, regId) {
-    console.log(util.format("Sending SwapQuery to register %s on device %s...", regId, regAddress));
+    logger.info("Sending SwapQuery to register %s on device %s...", regId, regAddress);
     sendSwapPacket(swap.Functions.QUERY, regAddress, regId);
 };
 
 exports.sendSwapCommand = function(regAddress, regId, regValue) {
-    console.log(util.format("Sending SwapCommand to register %s on device %s with data %s...", regId, regAddress, regValue));
+    logger.info("Sending SwapCommand to register %s on device %s with data %s...", regId, regAddress, regValue);
     sendSwapPacket(swap.Functions.COMMAND, regAddress, regId, regValue);
 };
     
 exports.sendSwapPacket = function(func, regAddress, regId, regValue) {
-    console.log(util.format("Sending SwapPacket %s to register %s on device %s with data %s...", func, regId, regAddress, regValue));
+    logger.info("Sending SwapPacket %s to register %s on device %s with data %s...", func, regId, regAddress, regValue);
     sendSwapPacket(func, regAddress, regId, regValue);
 };
 
