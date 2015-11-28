@@ -1,4 +1,19 @@
 <div class="plugins">
+  
+  <div angucomplete
+    id="ex14"
+    placeholder="Search countries"
+    pause="100"
+    selected-object="countrySelected14"
+    local-data="countries"
+    search-fields="name"
+    title-field="name"
+    minlength="1"
+    input-class="form-control form-control-small"
+    match-class="highlight"
+    template-url="/suggest-item-template.html">
+  </div>
+
   <tabs>
     <pane title="Barometre">
       <iframe src="/pressure.html" width="100%" height="740" frameborder="0"></iframe>

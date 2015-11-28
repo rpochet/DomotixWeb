@@ -10,7 +10,7 @@ app.controller('DomotixCtrl', [
         angular.forEach(room.lights, function(light, idx) {
           var pos = $scope.lightPosition(room, light);
           if (((x - pos[0]) * (x - pos[0]) + (y - pos[1]) * (y - pos[1])) < 10000) {
-            return websocketService.rpc('swapserver.sendSwapPacket', 
+            websocketService.rpc('swapserver.sendSwapPacket', 
               swap.LightController.Functions.Light, 
               light.swapDeviceAddress, 
               swap.LightController.Registers.Outputs.id, 

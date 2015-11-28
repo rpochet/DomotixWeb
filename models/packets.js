@@ -1,14 +1,42 @@
 exports.id = 'packets';
 exports.version = '1.01';
 
-exports.create = function(user) {
-    // NoSQL embedded database
-    DATABASE('users').insert(user);
+var DATABASE_NAME  = 'panstamp_packets';
+var $q = require('q');
+var util = require('util');
+var moment = require("moment");
+
+/**
+    Get SWAP Packet
+    return {SwapPacket}
+*/
+exports.getSwapPacket = function() {
+    var deferred = $q.defer();
+    /*DATABASE(DATABASE_NAME).get(STATE_DOCUMENT_NAME, function(error, doc) {
+        if(error) {
+            deferred.reject(new Error(error));
+        } else {
+            deferred.resolve(doc);
+        }
+    });*/
+    return deferred.promise;
 };
 
-exports.load = function(id, callback) {
-    // NoSQL embedded database
-    DATABASE('users').one(function(doc) {
-        return doc.id === id;
-    }, callback);
-}
+/**
+    Update swapPacket
+    @state {SwapPacket}
+    return {SwapPacket}
+*/
+exports.saveSwapPacket = function(swapPacket) {
+    var deferred = $q.defer();
+    swapPacket.time = moment().format('YYYY-MM-DDTHH:mm:ss.SSSZ');
+    DATABASE(DATABASE_NAME).save(swapPacket.time, swapPacket, function(error, doc) {
+        if(error) {
+            deferred.reject(new Error(error));
+        } else {
+            swapPacket._rev = doc._rev;
+            deferred.resolve(swapPacket);
+        }
+    });
+    return deferred.promise;
+};

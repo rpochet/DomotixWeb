@@ -27,9 +27,9 @@ exports.getState = function() {
     @state {State}
     return {State}
 */
-exports.updateState = function(state) {
+exports.saveState = function(state) {
     var deferred = $q.defer();
-    DATABASE(DATABASE_NAME).save(state._id, state._rev, state, function(error, doc) {
+    DATABASE(DATABASE_NAME).save(STATE_DOCUMENT_NAME, state._rev, state, function(error, doc) {
         if(error) {
             deferred.reject(new Error(error));
         } else {

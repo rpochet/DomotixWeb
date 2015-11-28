@@ -1,4 +1,5 @@
 var cradle = require('cradle');
+var util = require('util');
 var config = F.global.Config;
 var poolr  = require("poolr").createPool;
 var dbURL = "http://" + config.couchDB.host + ":" + config.couchDB.port;
@@ -20,16 +21,16 @@ function PoolrCradle(db) {
   this.db = db;
   this.pool = poolr(1, db);
   this.pool.on('throttle', function() {
-    console.log('throttle');
+    console.log(util.format('%s throttle', this.ctx.name));
   });
   this.pool.on('drain', function() {
-    console.log('drain');
+    console.log(util.format('%s drain', this.ctx.name));
   });
   this.pool.on('last', function() {
-    console.log('last');
+    console.log(util.format('%s last', this.ctx.name));
   });
   this.pool.on('idle', function() {
-    console.log('idle');
+    console.log(util.format('%s idle', this.ctx.name));
   });
 }
 

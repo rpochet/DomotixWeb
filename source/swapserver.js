@@ -1,8 +1,9 @@
 var util = require("util");
 var clone = require('clone');
-var SerialModem = MODULE("serial")
-var UdpBridge = MODULE("udpbridge")
-var State = MODULE("state")
+var moment = require("moment");
+var SerialModem = MODULE("serial");
+var UdpBridge = MODULE("udpbridge");
+var State = MODULE("state");
 var swapProducts = undefined;
 var swapDevices = undefined;
 var levels = undefined;
@@ -55,15 +56,15 @@ var saveSwapDevice = function(swapDevice) {
             logger.info(util.format("Devices %s updated", data._id));
             F.emit(swap.MQ.Type._ALL, swap.MQ.Type.SWAP_DEVICE, data._id);
         }).catch(function(err) {
-            logger.error(util.format("Devices %s not updated: %s", swapDevice._id, err));
+            logger.error("Devices %s not updated: %s", swapDevice._id, JSON.stringify(err));
         }); 
     } else {
         MODEL("devices").createSwapDevice(swapDevice).then(function(data) {
             swapDevices[data._id]._rev = data._rev;
-            logger.info(util.format("Devices %s created", data._id));
+            logger.info("Devices %s created", data._id);
             F.emit(swap.MQ.Type._ALL, swap.MQ.Type.SWAP_DEVICE, data._id);
         }).catch(function(err) {
-            logger.error(util.format("Devices %s not created: %s", swapDevice._id, err));
+            logger.error("Devices %s not created: %s", swapDevice._id, JSON.stringify(err));
         });
     }
 };
@@ -71,15 +72,17 @@ var saveSwapDevice = function(swapDevice) {
 var deleteSwapDevice = function(swapDevice) {
     MODEL("devices").deleteSwapDevice(swapDevice).then(function(data) {
         delete swapDevices[data._id];
-        logger.info(util.format("Devices %s deleted", data._id));
+        logger.info("Devices %s deleted", data._id);
         F.emit(swap.MQ.Type._ALL, swap.MQ.Type.SWAP_DEVICE, data._id);
     }).catch(function(err) {
-        logger.error(util.format("Devices %s not deleted: %s", swapDevice._id, err));
+        logger.error("Devices %s not deleted: %s", swapDevice._id, JSON.stringify(err));
     });
 }
 
 var swapPacketReceived = function(swapPacket) {
     logger.debug("SWAP Packet received %s", swapPacket);
+    MODEL("packets").saveSwapPacket(swapPacket);
+    
     var swapDevice = swapDevices["DEV" + swap.num2byte(swapPacket.regAddress)];
     var swapRegister = null;
     if(swapDevice == undefined) {
@@ -100,22 +103,24 @@ var swapPacketReceived = function(swapPacket) {
     
     switch(swapPacket.regId) {
         case swap.Registers.productCode.id:
-            if(newSwapDevice) {                
+            if(newSwapDevice) {
                 newSwapDevice.productCode = swap.array2string(swapPacket.regValue);
             }
             break;
         case swap.Registers.hardwareVersion.id:
-            if(newSwapDevice) {                
+            if(newSwapDevice) {
                 newSwapDevice.hardwareVersion = swap.array2string(swapPacket.regValue);
             }
             break;
         case swap.Registers.firmwareVersion.id:
-            if(newSwapDevice) {                
+            if(newSwapDevice) {
                 newSwapDevice.firmwareVersion = swap.array2string(swapPacket.regValue);
             }
             break;
         case swap.Registers.state.id:
-            swapDevice.state = swapPacket.regValue[0];
+            if(swapDevice) {
+                swapDevice.state = swapPacket.regValue[0];
+            }
             break;
         case swap.Registers.channel.id:
             break;
@@ -128,7 +133,7 @@ var swapPacketReceived = function(swapPacket) {
         case swap.Registers.network.id:
             break;
         case swap.Registers.address.id:
-            if(swapDevice.address != swapPacket.regValue[0]) {
+            if(swapDevice && swapDevice.address != swapPacket.regValue[0]) {
                 var changeSwapDevice = clone(swapDevice);
                 delete changeSwapDevice._rev;
                 changeSwapDevice._id = "DEV" + swap.num2byte(swapPacket.regValue[0]);
@@ -141,7 +146,9 @@ var swapPacketReceived = function(swapPacket) {
             }
             break;
         case swap.Registers.txInterval.id:
-            swapDevice.txInterval = swap.arrayToInt(swapPacket.regValue);
+            if(swapDevice) {
+                swapDevice.txInterval = swap.arrayToInt(swapPacket.regValue);
+            }
             break;
         default:
             if(swapDevice) {
@@ -176,17 +183,16 @@ var swapPacketReceived = function(swapPacket) {
         swapDevice.nonce = swapPacket.nonce;
         swapDevice.lastStatusTime = swapPacket.time;
         saveSwapDevice(swapDevice);
-    }
-    
-    if(swapDevice) {
-        handleSwapPacket(swapPacket, swapDevice, swapRegister);
+        if(swapRegister) { // Only for non-standard register   
+            handleSwapPacket(swapPacket, swapDevice, swapRegister);
+        }
     }
 };
 
 var handleSwapPacket = function(swapPacket, swapDevice, swapRegister) {
     if(swapDevice.product.productCode == swap.LightController.productCode) {
         if(swapRegister.id == swap.LightController.Registers.Outputs.id) {
-            state.saveState(swap.MQ.Type.LIGHT_STATUS, swapDevice.address, swapRegister.regValue);
+            state.saveState(swap.MQ.Type.LIGHT_STATUS, swapDevice.address, swapRegister.value);
         } else if(swapRegister.id == swap.LightController.Registers.PressureTemperature.id) {
             swapRegister.endpoints.forEach(function(endpoint) {
                 state.saveState(endpoint.name, swapDevice.address, swap.getRegisterPartInUnit(swapRegister, endpoint, endpoint.units[0]));
@@ -194,7 +200,7 @@ var handleSwapPacket = function(swapPacket, swapDevice, swapRegister) {
         }
     } else if(swapDevice.product.productCode == swap.LightSwitch.productCode) {
         if(swapRegister.id == swap.LightSwitch.Registers.Voltage.id) {
-            state.saveState(swap.MQ.Type.VOLTAGE, swapDevice.address, swapRegister.regValue);
+            state.saveState(swap.MQ.Type.VOLTAGE, swapDevice.address, swap.getRegisterPartInUnit(swapRegister, swapRegister.endpoints[0], swapRegister.endpoints[0].units[0]));
         } else if(swapRegister.id == swap.LightSwitch.Registers.Temperature.id) {
             state.saveState(swap.MQ.Type.TEMPERATURE, swapDevice.address, swap.getRegisterPartInUnit(swapRegister, swapRegister.endpoints[0], swapRegister.endpoints[0].units[0]));
         }
@@ -355,7 +361,9 @@ exports.getState = function() {
 
 exports.emitState = function() {
     for(var stateType in state.getState()) {
-        F.emit(swap.MQ.Type._ALL, stateType, state[stateType]);
+        if(stateType !== "last") {
+            F.emit(swap.MQ.Type._ALL, stateType, state[stateType]);
+        }
     }
 };
     

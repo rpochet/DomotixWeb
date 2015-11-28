@@ -13,6 +13,7 @@ Emits:
 function State(config) {
     EventEmitter.call(this);
     this.states = {};
+    this.refreshState();
 }
 
 util.inherits(State, EventEmitter);
@@ -27,6 +28,8 @@ State.prototype.saveState = function(type, id, value) {
     };
     this.states.last = type + "/" + id;
     this.emit("state_updated", this.states);
+    this.storeState();
+    
 };
 
 State.prototype.getStates = function() {
@@ -44,8 +47,18 @@ State.prototype.getState = function(type) {
 State.prototype.refreshState = function(type) {
     logger.info("State initialisation...");
     MODEL("state").getState().then(function(data) {
-        state = data;
+        this.states = data;
         logger.info("State initialised");
+        logger.debug("State initialised: %s", JSON.stringify(data));
+    });
+};
+
+State.prototype.storeState = function() {
+    logger.info("Storing state...");
+    MODEL("state").saveState(this.states).then(function(data) {
+        this.states = data;
+        logger.info("State saved");
+        logger.debug("State saved: %s", JSON.stringify(data));
     });
 };
 

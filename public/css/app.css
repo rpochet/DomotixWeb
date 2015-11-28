@@ -12,3 +12,7 @@ ul > li.nav-item.active > a {
 	color: #2B496B !important;
 	font-weight: bold;
 }
+
+.loading {
+	background-image: url('../img/loadinganimation.gif');
+}

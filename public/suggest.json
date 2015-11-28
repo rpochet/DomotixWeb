@@ -1,0 +1,33 @@
+{
+	"group1": {
+		"type": "major",
+		"items": [
+			{
+				"id": "1", 
+				"items": [{"content": [{
+					"text": "bla"
+				}, {
+					"ne": {
+						"type": "person",
+						"id": "4251",
+						"label": "Frederique Ries"
+					}
+				}, {
+					"text": "bla"
+				}, {
+					"ne": {
+						"type": "reference",
+						"id": "A-7-2011-0121",
+						"label": "bluetongue"
+					}
+				}], "comment": "toto"}]
+			}
+		]
+	},
+	"group2": {
+		"type": "other",
+		"items": [
+			{"id": "1", "label": "label", "comment": "titi"}
+		]
+	}
+}

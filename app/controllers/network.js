@@ -8,9 +8,9 @@ app.controller('NetworkCtrl', [
     var formatDate = d3.time.format("%Y-%m-%d %H:%M:%S");
     var formatUpdateDate = d3.time.format("%Y-%m-%d %H:%M:%S");
     var defaultMinRSSI = -120;
-    var defaultMaxRSSI = 120;
+    var defaultMaxRSSI = 0;
     var defaultMinLQI = 0;
-    var defaultMaxLQI = 120;
+    var defaultMaxLQI = 50;
     
     $scope.quality = {
       zoomRSSI: false,
@@ -70,7 +70,7 @@ app.controller('NetworkCtrl', [
       return $scope.quality.chart = c3.generate($scope.quality.options);
     };
     
-    var loadQuality = function() {
+    var loadQuality = function($event) {
       return $http.get('http://192.168.1.2:5984/panstamp_packets/_design/domotix/_view/network_status', {
         params: {
           skip: $scope.quality.offsetData,
@@ -79,7 +79,7 @@ app.controller('NetworkCtrl', [
         }
       }).success(function(data) {
         angular.forEach($scope.quality.options.data.columns, function(column) {
-          return column.splice(1);
+          column.splice(1);
         });
         angular.forEach(data.rows, function(row, idx) {
           var source, value;
@@ -88,27 +88,29 @@ app.controller('NetworkCtrl', [
           if (source > 1 && source !== 255) {
             $scope.quality.options.data.columns[0 + $scope.quality.nbGraph * (source - minSource)].push(d3.time.format.iso.parse(value.time));
             $scope.quality.options.data.columns[1 + $scope.quality.nbGraph * (source - minSource)].push(value.RSSI);
-            return $scope.quality.options.data.columns[2 + $scope.quality.nbGraph * (source - minSource)].push(value.LQI);
+            $scope.quality.options.data.columns[2 + $scope.quality.nbGraph * (source - minSource)].push(value.LQI);
           }
         });
-        return $scope.quality.chart.load({
+        $scope.quality.chart.load({
           columns: $scope.quality.options.data.columns
         });
+        angular.element($event.currentTarget).removeClass('loading');
       });
     };
-    $scope.refreshQuality = function() {
-      return loadQuality();
+    $scope.refreshQuality = function($event) {
+      angular.element($event.currentTarget).addClass('loading');
+      return loadQuality($event);
     };
-    $scope.previousQuality = function() {
+    $scope.previousQuality = function($event) {
       $scope.quality.offsetData = $scope.quality.offsetData + $scope.quality.nbData;
-      return $scope.refreshQuality();
+      return $scope.refreshQuality($event);
     };
-    $scope.nextQuality = function() {
+    $scope.nextQuality = function($event) {
       if ($scope.quality.offsetData <= 0) {
         return;
       }
       $scope.quality.offsetData = $scope.quality.offsetData - $scope.quality.nbData;
-      return $scope.refreshQuality();
+      return $scope.refreshQuality($event);
     };
     
     $scope.nonce = {
@@ -152,7 +154,7 @@ app.controller('NetworkCtrl', [
     $scope.createNonceGraph = function() {
       return $scope.nonce.chart = c3.generate($scope.nonce.options);
     };
-    var loadNonce = function(addr) {
+    var loadNonce = function(addr, $event) {
       return $http.get('http://192.168.1.2:5984/panstamp_packets/_design/domotix/_view/nonce_' + addr, {
         params: {
           skip: $scope.nonce.offsetData,
@@ -161,36 +163,36 @@ app.controller('NetworkCtrl', [
         }
       }).success(function(data) {
         angular.forEach($scope.nonce.options.data.columns, function(column) {
-          return column.splice(1);
+          column.splice(1);
         });
         angular.forEach(data.rows, function(row, idx) {
-          console.log(d3.time.format.iso.parse(row.key));
           $scope.nonce.options.data.columns[0 + $scope.nonce.nbGraph * (addr - minSource)].push(d3.time.format.iso.parse(row.key));
-          return $scope.nonce.options.data.columns[1 + $scope.nonce.nbGraph * (addr - minSource)].push(row.value);
+          $scope.nonce.options.data.columns[1 + $scope.nonce.nbGraph * (addr - minSource)].push(row.value);
         });
-        return $scope.nonce.chart.load({
+        $scope.nonce.chart.load({
           columns: $scope.nonce.options.data.columns
         });
+        angular.element($event.currentTarget).removeClass('loading');
       });
     };
-    $scope.refreshNonce = function() {
-      var addr, j, ref, ref1, results;
-      results = [];
-      for (addr = j = ref = minSource, ref1 = maxSource; ref <= ref1 ? j <= ref1 : j >= ref1; addr = ref <= ref1 ? ++j : --j) {
-        results.push(loadNonce(addr));
+    $scope.refreshNonce = function($event) {
+      angular.element($event.currentTarget).addClass('loading');
+      for (var addr = minSource; addr < maxSource; addr++) {
+        loadNonce(addr, $event);
       }
-      return results;
     };
-    $scope.previousNonce = function() {
+    $scope.previousNonce = function($event) {
+      angular.element($event.currentTarget).addClass('loading');
       $scope.nonce.offsetData = $scope.nonce.offsetData + $scope.nonce.nbData;
-      return $scope.refreshNonce();
+      $scope.refreshNonce($event);
     };
-    $scope.nextNonce = function() {
+    $scope.nextNonce = function($event) {
+      angular.element($event.currentTarget).addClass('loading');
       if ($scope.nonce.offsetData <= 0) {
         return;
       }
       $scope.nonce.offsetData = $scope.nonce.offsetData - $scope.nonce.nbData;
-      return $scope.refreshNonce();
+      $scope.refreshNonce($event);
     };
     
     $scope.swapPackets = [];

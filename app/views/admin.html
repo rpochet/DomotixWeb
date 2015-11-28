@@ -15,31 +15,31 @@
   <!-- <div class="tab-content"> -->
     <div role="tabpanel" class="tab-pane active" id="android">
       <div class="card">
-        <div class="panel-heading">Android Application</div>
-        <div class="panel-body">
+        <div class="card-header">Android Application</div>
+        <div class="card-block">
           <div><a href="../Domotix.apk"><strong>Domotix</strong></a></div>
         </div>
       </div>      
     </div>
     <div role="tabpanel" class="tab-pane" id="network">
       <div class="card">
-        <div class="panel-heading">Scan</div>
-        <div class="panel-body">
+        <div class="card-header">Scan</div>
+        <div class="card-block">
           <div><a ng-click="checkNewDevices()"><strong>Check stamps</strong></a>
             <hr/><a ng-click="refreshDevices(true)"><strong>Refresh devices</strong></a>
             <hr/><a ng-click="refreshSwapPacketsEvents()"><strong>Refresh Swap packets</strong></a>
-            <hr/><a ng-click="refreshState()"><strong>Refresh state</strong></a>
+            <hr/><a ng-click="refreshState(true)"><strong>Refresh state</strong></a>
           </div>
         </div>
       </div>
     </div>
     <div role="tabpanel" class="tab-pane" id="messages">
       <div class="card">
-        <div class="panel-heading">Messages</div>
-        <div class="panel-body">
+        <div class="card-header">Messages</div>
+        <div class="card-block">
           <div class="card">
-            <div class="panel-heading">Send message</div>
-            <div class="panel-body">
+            <div class="card-header">Send message</div>
+            <div class="card-block">
               <form ng-submit="sendMessage(message)" role="form">
                 <div class="form-group">
                   <label>Function codes</label>
@@ -65,8 +65,8 @@
             </div>
           </div>
           <div class="card">
-            <div class="panel-heading">Decode message</div>
-            <div class="panel-body">
+            <div class="card-header">Decode message</div>
+            <div class="card-block">
               <form role="form">
                 <div class="form-group">
                   <div class="input-group">
@@ -96,11 +96,11 @@
     </div>
     <div role="tabpanel" class="tab-pane" id="messages">
       <div class="card">
-        <div class="panel-heading">Simulator</div>
-        <div class="panel-body">
+        <div class="card-header">Simulator</div>
+        <div class="card-block">
           <div class="card">
-            <div class="panel-heading">New device</div>
-            <div class="panel-body">
+            <div class="card-header">New device</div>
+            <div class="card-block">
               <form ng-submit="createNewDevice(newDevice)" role="form">
                 <div class="form-group">
                   <div class="input-group">
@@ -115,8 +115,8 @@
             </div>
           </div>
           <div class="card">
-            <div class="panel-heading">Change device address</div>
-            <div class="panel-body">
+            <div class="card-header">Change device address</div>
+            <div class="card-block">
               <form ng-submit="changeDeviceAddress(changeDevice)" role="form">
                 <div class="form-group">
                   <div class="input-group">
@@ -133,8 +133,8 @@
     </div>
     <div role="tabpanel" class="tab-pane" id="couchdb">
       <div class="card">
-        <div class="panel-heading">Configuration</div>
-        <div class="panel-body">
+        <div class="card-header">Configuration</div>
+        <div class="card-block">
           <ul>
             <li>Script: /etc/init.d/couchdb</li>
             <li>Configuration: /etc/default/couchdb</li>
@@ -143,23 +143,11 @@
           </ul>
         </div>
       </div>
-      <div class="card">
-        <div class="panel-heading">Clean by view</div>
-        <div class="panel-body">
-          <form ng-submit="cleanByView()" role="form">
-            <div class="form-group">
-              <label>View</label>
-              <input type="text" ng-model="couchDbView" class="form-control"/>
-            </div><br/>
-            <input type="submit" value="Clean" class="btn-primary"/>
-          </form>
-        </div>
-      </div>
     </div>
     <div role="tabpanel" class="tab-pane" id="rabbitmq">
       <div class="card">
-        <div class="panel-heading">Configuration</div>
-        <div class="panel-body">
+        <div class="card-header">Configuration</div>
+        <div class="card-block">
           <ul>
             <li>Script: /etc/init.d/rabbitmq-server</li>
             <li>Configuration: /etc/rabbitmq/rabbitmq.config </li>
@@ -169,23 +157,10 @@
         </div>
       </div>
     </div>
-    <div role="tabpanel" class="tab-pane" id="???">
-      <div class="card">
-        <div class="panel-heading">Configuration</div>
-        <div class="panel-body">
-          <ul>
-            <li>Address: 192.168.1.4</li>
-            <li>Url: 
-              <iframe href="http://192.168.1.4:8111/"></iframe>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
     <div role="tabpanel" class="tab-pane" id="acra">
       <div class="card">
-        <div class="panel-heading">Configuration</div>
-        <div class="panel-body">
+        <div class="card-header">Configuration</div>
+        <div class="card-block">
           <ul>
             <li>Configuration: /etc/rabbitmq/rabbitmq.config</li>
             <li>Url: <a href="http://192.168.1.2:5984/acralyzer/_design/acralyzer/index.html" target="_acra">Acra</a></li>

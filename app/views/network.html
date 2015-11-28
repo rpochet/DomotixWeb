@@ -1,31 +1,35 @@
 <div ng-controller="NetworkCtrl" class="container-fluid">
-  <h1>Network</h1>
-  <div class="row">
-    <h4>Swap Events</h4>
-    <div id="events">
+
+  <div class="card card-block">
+    <h4 class="card-title">Swap Events</h4>
+    <div class="card-block">
       <div ng-repeat="swapEvent in swapEvents" ng-class="{even: $even, odd: $odd}"><span class="text-{{swapEvent.topic}}">{{swapEvent.type | uppercase}}: {{swapEvent.text}}</span><span class="pull-right muted"><small> {{swapEvent.time| date:"dd/MM/yyyy @ HH:mm:ss"}} </small></span></div>
     </div>
   </div>
-  <div class="row">
-    <h4>Swap Packets</h4>
-    <div id="packets">
+  
+  <div class="card card-block">
+    <h4 class="card-title">Swap Packets</h4>
+    <div class="card-block">
       <div ng-repeat="swapPacket in swapPackets" ng-class="{even: $even, odd: $odd}"><span>{{swapPacket}} </span><span class="pull-right muted">{{swapPacket.time | date:"dd/MM/yyyy @ HH:mm:ss"}}</span></div>
     </div>
   </div>
-  <div class="row">
-    <h4>Quality</h4>
-    <div id="chart-quality" ng-click="refreshQuality()" style="height: 600px"></div>
-    <div class="pagination">
-      <button ng-click="previousQuality()" class="btn btn-primary">Previous</button>
-      <button ng-click="nextQuality()" ng-class="{'btn-primary': quality.offsetData &gt; 0}" class="btn btn-default">Next</button>
+  
+  <div class="card card-block">
+    <h4 class="card-title">Quality</h4>
+    <div class="card-block">
+      <div id="chart-quality" ng-click="refreshQuality($event)" style="height: 600px"></div>
+      <button ng-click="previousQuality($event)" class="btn btn-primary">Previous</button>
+      <button ng-click="nextQuality($event)" ng-class="{'btn-primary': quality.offsetData &gt; 0}" ng-disabled="quality.offsetData == 0" class="btn btn-default">Next</button>
     </div>
   </div>
-  <div class="row">
-    <h4>Nonce</h4>
-    <div id="chart-nonce" ng_click="refreshNonce()" style="height: 500px"></div>
-    <div class="pagination">
-      <button ng-click="previousNonce()" class="btn btn-primary">Previous</button>
-      <button ng-click="nextNonce()" ng-class="{'btn-primary': nonce.offsetData &gt; 0}" class="btn btn-default">Next</button>
+  
+  <div class="card card-block">
+    <h4 class="card-title">Nonce</h4>
+    <div class="card-block">
+      <div id="chart-nonce" ng_click="refreshNonce($event)" style="height: 500px"></div>
+      <button ng-click="previousNonce($event)" class="btn btn-primary">Previous</button>
+      <button ng-click="nextNonce($event)" ng-class="{'btn-primary': nonce.offsetData &gt; 0}" ng-disabled="nonce.offsetData == 0" class="btn btn-default">Next</button>
     </div>
   </div>
+  
 </div>
