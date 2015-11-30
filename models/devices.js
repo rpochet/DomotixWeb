@@ -32,7 +32,7 @@ exports.getSwapDevices = function() {
     var deferred = $q.defer();
     DATABASE(DATABASE_NAME).view(DEVICES_VIEW_NAMESPACE + "/" + DEVICES_VIEW_NAME, function(error, res) {
         if(error) {
-            deferred.reject(new Error(error));
+            deferred.reject(new Error(error.error + ': ' + error.reasonror));
         } else {
             var ret = {};
             res.json.rows.forEach(function(row) {
@@ -53,7 +53,7 @@ exports.createSwapDevice = function(swapDevice) {
     var deferred = $q.defer();
     DATABASE(DATABASE_NAME).save(swapDevice._id, swapDevice, function(error, doc) {
         if(error) {
-            deferred.reject(new Error(error));
+            deferred.reject(new Error(error.error + ': ' + error.reason));
         } else {
             swapDevice._rev = doc._rev;
             deferred.resolve(swapDevice);
@@ -71,7 +71,7 @@ exports.updateSwapDevice = function(swapDevice) {
     var deferred = $q.defer();
     DATABASE(DATABASE_NAME).save(swapDevice._id, swapDevice._rev, swapDevice, function(error, doc) {
         if(error) {
-            deferred.reject(new Error(error));
+            deferred.reject(new Error(error.error + ': ' + error.reason));
         } else {
             swapDevice._rev = doc._rev;
             deferred.resolve(swapDevice);
@@ -89,7 +89,7 @@ exports.deleteSwapDevice = function(swapDevice) {
     var deferred = $q.defer();
     DATABASE(DATABASE_NAME).remove(swapDevice._id, swapDevice._rev, function(error, doc) {
         if(error) {
-            deferred.reject(new Error(error));
+            deferred.reject(new Error(error.error + ': ' + error.reason));
         } else {
             swapDevice._rev = doc._rev;
             deferred.resolve(swapDevice);

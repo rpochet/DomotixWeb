@@ -8,18 +8,21 @@ app.controller('DevicesCtrl', ['$scope', 'websocketService', function($scope, we
     $scope.update = function() {
       $scope.selectedDevice = angular.copy($scope.editedDevice);
       if ($scope.selectedDevice) {
-        return websocketService.rpc('swapserver.updateDevice', $scope.editedDevice, $scope.selectedDevice);
+        websocketService.rpc('swapserver.updateDevice', $scope.editedDevice, $scope.selectedDevice);
       }
     };
+    
     $scope.reset = function() {
-      return $scope.editedDevice = angular.copy($scope.selectedDevice);
+      $scope.editedDevice = angular.copy($scope.selectedDevice);
     };
+    
     $scope.isUnchanged = function() {
       return angular.equals($scope.editedDevice, $scope.selectedDevice);
     };
+    
     $scope.selectDevice = function(device) {
       $scope.selectedDevice = device;
-      return $scope.reset();
+      $scope.reset();
     };
     
     $scope.noSee = function(device) {
@@ -31,7 +34,7 @@ app.controller('DevicesCtrl', ['$scope', 'websocketService', function($scope, we
     };
     
     $scope.$on(swap.MQ.Type.SWAP_DEVICE, function() {
-      return websocketService.rpc('swapserver.getSwapDevices').then(function(devices) {
+      websocketService.rpc('swapserver.getSwapDevices').then(function(devices) {
         return $scope.$apply(function() {
           return $scope.devices = devices;
         });

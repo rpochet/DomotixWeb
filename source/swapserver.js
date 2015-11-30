@@ -385,3 +385,19 @@ exports.sendSwapPacket = function(func, regAddress, regId, regValue) {
 exports.messageFromCloud = function(rawSwapPacket) {
     serialModem.emit(swap.MQ.Type.SWAP_PACKET, "(FFFF)" + rawSwapPacket);
 };
+
+exports.updateDevice = function(updatedSwapDevice) {
+    var swapDevice = swapDevices[updatedSwapDevice._id];
+    if(swapDevice) {
+        /*if((swapDevice.location.x != swapDevice.location.x) ||
+            (swapDevice.location.y != swapDevice.location.y) ||
+            (swapDevice.location.z != swapDevice.location.z) ||
+            (swapDevice.location.room.id != swapDevice.location.room.id)) {
+            
+        }*/
+        updatedSwapDevice._rev = swapDevice._rev;
+        swapDevices[updatedSwapDevice._id] = updatedSwapDevice;
+        saveSwapDevice(updatedSwapDevice);
+    }
+    throw new Error("Invalid SWAP Device " + updatedSwapDevice._id);
+}

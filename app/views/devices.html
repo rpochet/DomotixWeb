@@ -52,14 +52,16 @@
       <fieldset class="form-group">
         <label class="col-sm-2 control-label">Last Status</label>
         <div class="col-sm-10">
-          <p class="form-control-static">{{editedDevice.lastStatusTime | date:"dd/MM/yyyy @ HH:mm:ss"}}<span ng-show="noSee(editedDevice)" class="label bg-danger">Last Seen </span>            {{editedDevice.lastStatusTime | fromNow}} !</p>
+          <p class="form-control-static">{{editedDevice.lastStatusTime | date:"dd/MM/yyyy @ HH:mm:ss"}} <span ng-show="noSee(editedDevice)" class="label bg-danger">Last Seen </span>            {{editedDevice.lastStatusTime | fromNow}} !</p>
         </div>
       </fieldset>
       <fieldset class="form-group">
         <label class="col-sm-2 control-label">Location</label>
         <div class="col-sm-10">
-          <input type="text" placeholder="Room Id..." ng-model="editedDevice.location.room_id" required="required" class="form-control"
-          />
+          <input type="number" placeholder="x" ng-model="editedDevice.location.x" required="required" class="form-control" />
+          <input type="number" placeholder="y" ng-model="editedDevice.location.y" required="required" class="form-control" />
+          <input type="number" placeholder="z" ng-model="editedDevice.location.z" required="required" class="form-control" />
+          <select ng-options="room as room.name for room in rooms track by room.id" ng-model="editedDevice.location.room"></select>
         </div>
       </fieldset>
       <fieldset class="form-group">

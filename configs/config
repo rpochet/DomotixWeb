@@ -10,5 +10,5 @@ mail.address.from               : pochet.romuald@gmail.com
 mail.address.reply              : pochet.romuald@gmail.com
 mail.address.bcc                :
 
-
+default-websocket-request-length :     7
 allow-compile-script             : false

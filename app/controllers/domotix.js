@@ -1,7 +1,6 @@
 app.controller('DomotixCtrl', [
   '$scope', 'websocketService', function($scope, websocketService) {
     var swap = isomorphic.swap;
-    var displayPressure, displayTemperature, displayTemperaturePressure;
     
     $scope.handleSvgClick = function($event, level) {
       var x = $event.offsetX / $event.currentTarget.clientWidth * level.width;
@@ -46,16 +45,16 @@ app.controller('DomotixCtrl', [
     
     $scope.$on(swap.MQ.Type.SWAP_DEVICE, function(event, swapDevice) {
       websocketService.rpc('swapserver.getSwapDevices').then(function(devices) {
-        return $scope.devices = devices;
+        $scope.devices = devices;
       });
     });
     
     $scope.$on(swap.MQ.Type.TEMPERATURE, function(event, temperature) {
-      return displayTemperature(temperature);
+      displayTemperature(temperature);
     });
     
     $scope.$on(swap.MQ.Type.PRESSURE, function(event, pressure) {
-      return displayPressure(pressure);
+      displayPressure(pressure);
     });
     
     $scope.$on(swap.MQ.Type.LIGHT_STATUS, function(event, lightStatus) {
@@ -73,23 +72,23 @@ app.controller('DomotixCtrl', [
       });
     });
     
-    displayTemperature = function(temperature) {
+    var displayTemperature = function(temperature) {
       angular.forEach(temperature, function(temperature, devAddr) {
           $scope.devices['DEV' + swap.num2byte(devAddr)].temperature = temperature;
       });
     };
     
-    displayPressure = function(pressure) {
+    var displayPressure = function(pressure) {
       angular.forEach(pressure, function(pressure, devAddr) {
           $scope.devices['DEV' + swap.num2byte(devAddr)].pressure = pressure;
       });
     };
     
-    displayTemperaturePressure = function() {
-      return websocketService.rpc('swapserver.getTemperature').then(function(temperature) {
+    var displayTemperaturePressure = function() {
+      websocketService.rpc('swapserver.getTemperature').then(function(temperature) {
         displayTemperature(temperature);
       });
-      return websocketService.rpc('swapserver.getPressure').then(function(pressure) {
+      websocketService.rpc('swapserver.getPressure').then(function(pressure) {
         displayPressure(pressure);
       });
     };

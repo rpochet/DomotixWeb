@@ -8,5 +8,5 @@ app.controller('PluginsCtrl', ['$scope', '$http', function($scope, $http) {
             });
     };
     $scope.suggest();
-    
+        
 }]);

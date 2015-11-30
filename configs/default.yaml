@@ -107,4 +107,4 @@ development:
         dummy: true
     broker:
         udp:
-            inhost: 192.168.1.9
+            inhost: 127.0.0.1

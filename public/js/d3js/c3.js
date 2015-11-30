@@ -55,6 +55,7 @@
     }
 
     c3.generate = function (config) {
+        console.log(JSON.stringify(config));
         return new Chart(config);
     };
 

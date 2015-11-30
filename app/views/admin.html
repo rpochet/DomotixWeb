@@ -128,6 +128,20 @@
               </form>
             </div>
           </div>
+          <div class="card">
+            <div class="card-header">Change device location</div>
+            <div class="card-block">
+              <form ng-submit="changeDeviceAddress(changeDevice)" role="form">
+                <div class="form-group">
+                  <div class="input-group">
+                    <input type="number" placeholder="Address" size="10" ng-model="changeDevice.oldAddress" class="form-control"/>
+                    <input type="number" placeholder="Location" size="40" ng-model="changeDevice.newAddress" class="form-control"/>
+                  </div>
+                </div><br/>
+                <input type="submit" value="Send" class="btn-primary"/>
+              </form>
+            </div>
+          </div>
         </div>
       </div>
     </div>

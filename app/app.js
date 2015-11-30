@@ -1,4 +1,4 @@
-var app = angular.module('app', ['ui.router', 'ui.bootstrap', 'domotix.filters', 'ngToast', 'angucomplete-alt']);
+var app = angular.module('app', ['ui.router', 'ui.bootstrap', 'domotix.filters', 'ngToast', 'angucomplete-alt', 'angularChart']);
 
 var pingInterval = null;
 var connectWebsocket = function(websocketService, wsUrl) {
@@ -86,37 +86,44 @@ app.run(function($rootScope, $window, $uibModal, websocketService) {
 app.run(function($rootScope, websocketService) {
     $rootScope.refreshDevices = function(force) {
       websocketService.rpc(force || false ? 'swapserver.refreshSwapDevices' : 'swapserver.getSwapDevices').then(function(devices) {
-        return $rootScope.devices = devices;
+        $rootScope.devices = devices;
       });
     };
     
     $rootScope.refreshConfig = function(force) {
       websocketService.rpc(force || false ? 'swapserver.refreshConfig' : 'swapserver.getConfig').then(function(config) {
-        return $rootScope.config = config;
+        $rootScope.config = config;
       });
     };
     
     $rootScope.refreshState = function(force) {
       websocketService.rpc(force || false ? 'swapserver.refreshState' : 'swapserver.getState').then(function(state) {
-        return $rootScope.state = state;
+        $rootScope.state = state;
       });
     };
       
     $rootScope.refreshLevels = function(force) {
       websocketService.rpc(force || false ? 'swapserver.refreshLevels' : 'swapserver.getLevels').then(function(levels) {
-        return $rootScope.levels = levels;
+        $rootScope.levels = levels;
+        var rooms = new Array();
+        levels.forEach(function(level) {
+          level.rooms.forEach(function(room) {
+            rooms.push(room);
+          });
+        });
+        $rootScope.rooms = rooms;
       });
     };
       
     $rootScope.refreshLights = function(force) {
       websocketService.rpc(force || false ? 'swapserver.refreshLights' : 'swapserver.getLights').then(function(lights) {
-        return $rootScope.lights = lights;
+        $rootScope.lights = lights;
       });
     };
       
     $rootScope.refreshState = function(force) {
       websocketService.rpc(force || false ? 'swapserver.refreshState' : 'swapserver.getState').then(function(state) {
-        return $rootScope.state = state;
+        $rootScope.state = state;
       });
     };
     
