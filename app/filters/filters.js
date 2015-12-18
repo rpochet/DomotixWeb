@@ -7,15 +7,18 @@ var systemStates = {
   4: "Low battery"
 };
 
-angular.module('domotix.filters', []).filter('fromNow', function() {
+angular.module('domotix.filters', [])
+  .filter('fromNow', function() {
     return function(date) {
       return moment(date).fromNow();
     };
-  }).filter('systemState', function() {
+  })
+  .filter('systemState', function() {
     return function(systemState) {
       return systemStates[systemState];
     };
-  }).filter('objectToArray', function() {
+  })
+  .filter('objectToArray', function() {
     return function(object) {
       var ele, id, results;
       results = [];
@@ -26,7 +29,8 @@ angular.module('domotix.filters', []).filter('fromNow', function() {
       }
       return results;
     };
-  }).filter('num', function() {
+  })
+  .filter('num', function() {
     return function(value, dividor) {
       var i, index, item, mul, res;
       if (dividor == null) {

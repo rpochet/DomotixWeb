@@ -50,23 +50,23 @@ var sendSwapPacket = function(swapPacket) {
 }
 
 var saveSwapDevice = function(swapDevice) {
-    if(swapDevice._rev) {
-        MODEL("devices").updateSwapDevice(swapDevice).then(function(data) {
-            swapDevices[data._id]._rev = data._rev;
-            logger.info(util.format("Devices %s updated", data._id));
-            F.emit(swap.MQ.Type._ALL, swap.MQ.Type.SWAP_DEVICE, data._id);
-        }).catch(function(err) {
-            logger.error("Devices %s not updated: %s", swapDevice._id, JSON.stringify(err));
-        }); 
-    } else {
-        MODEL("devices").createSwapDevice(swapDevice).then(function(data) {
-            swapDevices[data._id]._rev = data._rev;
-            logger.info("Devices %s created", data._id);
-            F.emit(swap.MQ.Type._ALL, swap.MQ.Type.SWAP_DEVICE, data._id);
-        }).catch(function(err) {
-            logger.error("Devices %s not created: %s", swapDevice._id, JSON.stringify(err));
-        });
-    }
+    MODEL("devices").updateSwapDevice(swapDevice).then(function(data) {
+        //swapDevices[data._id]._rev = data._rev;
+        logger.info(util.format("Devices %s updated (%s)", data._id, data._rev));
+        F.emit(swap.MQ.Type._ALL, swap.MQ.Type.SWAP_DEVICE, data._id);
+    }).catch(function(err) {
+        logger.error("Devices %s not updated: %s", swapDevice._id, JSON.stringify(err));
+    }); 
+}
+
+var createSwapDevice = function(swapDevice) {
+    MODEL("devices").createSwapDevice(swapDevice).then(function(data) {
+        //swapDevices[data._id]._rev = data._rev;
+        logger.info("Devices %s created", data._id);
+        F.emit(swap.MQ.Type._ALL, swap.MQ.Type.SWAP_DEVICE, data._id);
+    }).catch(function(err) {
+        logger.error("Devices %s not created: %s", swapDevice._id, JSON.stringify(err));
+    });
 };
 
 var deleteSwapDevice = function(swapDevice) {
@@ -81,7 +81,7 @@ var deleteSwapDevice = function(swapDevice) {
 
 var swapPacketReceived = function(swapPacket) {
     logger.debug("SWAP Packet received %s", swapPacket);
-    MODEL("packets").saveSwapPacket(swapPacket);
+    //MODEL("packets").saveSwapPacket(swapPacket);
     
     var swapDevice = swapDevices["DEV" + swap.num2byte(swapPacket.regAddress)];
     var swapRegister = null;
@@ -141,7 +141,7 @@ var swapPacketReceived = function(swapPacket) {
                 changeSwapDevice.nonce = swapPacket.nonce;
                 changeSwapDevice.lastStatusTime = swapPacket.time;
                 swapDevices[changeSwapDevice._id] = changeSwapDevice;
-                saveSwapDevice(changeSwapDevice);
+                createSwapDevice(changeSwapDevice);
                 deleteSwapDevice(swapDevice);
             }
             break;
@@ -173,7 +173,7 @@ var swapPacketReceived = function(swapPacket) {
                 swapDevice.nonce = swapPacket.nonce;
                 swapDevice.lastStatusTime = swapPacket.lastStatusTime;
                 swapDevices[swapDevice._id] = swapDevice;
-                saveSwapDevice(swapDevice);                
+                createSwapDevice(swapDevice);                
             } else {
                 logger.warn(util.format("Product is not available for SWAP Device %s", swapPacket.regAddressnewSwapDevice.productCode + newSwapDevice.hardwareVersion + newSwapDevice.firmwareVersion));
             }
@@ -395,7 +395,7 @@ exports.updateDevice = function(updatedSwapDevice) {
             (swapDevice.location.room.id != swapDevice.location.room.id)) {
             
         }*/
-        updatedSwapDevice._rev = swapDevice._rev;
+        //updatedSwapDevice._rev = swapDevice._rev;
         swapDevices[updatedSwapDevice._id] = updatedSwapDevice;
         saveSwapDevice(updatedSwapDevice);
     }

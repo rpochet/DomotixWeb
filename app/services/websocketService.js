@@ -1,4 +1,4 @@
-app.factory('websocketService', ['$rootScope', '$q', function($rootScope, $q) {
+app.factory('websocketService', ['$rootScope', '$q', 'ngToast', function($rootScope, $q, ngToast) {
 
     var _ws;
     var _sid = 0;
@@ -27,9 +27,15 @@ app.factory('websocketService', ['$rootScope', '$q', function($rootScope, $q) {
             _ws = new WebSocket(url);
             _ws.onmessage = onMessage;
             _ws.onopen = function () {
+                ngToast.info({
+                    content: 'Websocket open'
+                });
             	$rootScope.$broadcast('websocket:ready');
             };
             _ws.onclose = function () {
+            	ngToast.info({
+                    content: 'Websocket close'
+                });
             	$rootScope.$broadcast('websocket:closed');
             };
         },

@@ -1,3 +1,23 @@
+
+<!-- /app/common/
+@{ngCommon('swap')} -->
+@{import('ui-bootstrap-tpls-0.14.3.min.js', 'angular/angular-ui-router.js', 'angular/angular-animate.js', 'angular/angular-sanitize.js', 'd3js/d3.v3.js', 'd3js/c3.js', 'd3js/angular-chart.js', 'ngToast.min.js', 'angucomplete-alt.js', 'splash.js')}
+
+<!-- /app/css/ -->
+@{ngStyle('app', 'app-mobile')}
+
+<!-- /app/controllers/ -->
+@{ngController('domotix')}
+
+<!-- /app/filters/ -->
+@{ngFilter('filters')}
+
+<toast></toast>
+
+<div>
+  <h1 class="display-1 xirod"><img src="domotix.ico" /> Domotix</h1>
+</div>
+
 <div ng-controller="DomotixCtrl" class="container">
   <div class="tab-pane">
     <ul class="nav nav-tabs">
@@ -30,9 +50,9 @@
               xlink:href="{{lightDef(room, light)}}" fill="{{lightFill(room, light)}}" transform="{{lightTransform(room, light)}}"></use>
             
             <g ng-repeat="light in room.lights">
-              <circle cx="{{lightPosition(room, light)[0]}}" cy="{{lightPosition(room, light)[1]}}" r="50" stroke="teal" stroke-width="1" style="fill-opacity: 0;"></circle>
-              <circle cx="{{lightPosition(room, light)[0]}}" cy="{{lightPosition(room, light)[1]}}" r="75" stroke="teal" stroke-width="1" style="fill-opacity: 0;"></circle>
-              <circle cx="{{lightPosition(room, light)[0]}}" cy="{{lightPosition(room, light)[1]}}" r="100" stroke="teal" stroke-width="1" style="fill-opacity: 0;"></circle>
+              <circle cx="{{lightPosition(room, light)[0]}}" cy="{{lightPosition(room, light)[1]}}" r="50" stroke="red" stroke-width="1" style="fill-opacity: 0;"></circle>
+              <circle cx="{{lightPosition(room, light)[0]}}" cy="{{lightPosition(room, light)[1]}}" r="75" stroke="red" stroke-width="1" style="fill-opacity: 0;"></circle>
+              <circle cx="{{lightPosition(room, light)[0]}}" cy="{{lightPosition(room, light)[1]}}" r="100" stroke="red" stroke-width="1" style="fill-opacity: 0;"></circle>
             </g>
             
             <g ng-repeat="device in devices | objectToArray | filter: { location: { room_id: room.id }}">

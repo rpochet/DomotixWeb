@@ -1,9 +1,15 @@
-var app = angular.module('app', ['ui.router', 'ui.bootstrap', 'domotix.filters', 'ngToast', 'angucomplete-alt', 'angularChart']);
+var app = angular.module('app', ['ui.router', 'ui.bootstrap', 'ui.splash', 'domotix.filters', 'ngToast', 'angucomplete-alt', 'angularChart']);
 
 var pingInterval = null;
 var connectWebsocket = function(websocketService, wsUrl) {
   websocketService.init(wsUrl);
 };
+
+app.config(['ngToastProvider', function(ngToastProvider) {
+    ngToastProvider.configure({
+        dismissOnTimeout: false
+    });
+}]);
 
 app.config(function ($stateProvider, $urlRouterProvider) {
   
@@ -55,9 +61,10 @@ app.config(function ($stateProvider, $urlRouterProvider) {
     })*/;
 });
 
-app.run(function($rootScope, $window, $uibModal, websocketService) {
+app.run(['$rootScope', '$window', '$splash', 'websocketService', 'ngToast', function($rootScope, $window, $splash, websocketService, ngToast) {
   var wsUrl = 'ws://' + $window.location.host;
-   
+  var $modalInstance;
+  
   $rootScope.$on('websocket:ready', function() {
     $rootScope.refreshConfig();
     $rootScope.refreshLights();
@@ -65,45 +72,70 @@ app.run(function($rootScope, $window, $uibModal, websocketService) {
     $rootScope.refreshDevices();
     $rootScope.refreshState(true);
     
-    console.log('Connection back up :-)');
-    //$('#warning').modal('hide')
+    if($modalInstance) {
+      console.log('Connection back up :-)');
+      $modalInstance.dismiss('cancel');
+      $modalInstance = null;      
+    }
     clearInterval(pingInterval);
   });
   
   $rootScope.$on('websocket:closed', function() {
     console.log('Connection down :-(');
-    //$('#warning').modal('show');
-    pingInterval = setInterval(function(websocketService, wsUrl) {
-      connectWebsocket(websocketService, wsUrl);
-    }, 10000, websocketService, wsUrl);
+    if($modalInstance == null) {
+      $modalInstance = $splash.open({
+        title: 'Hi there!',
+        message: "This sure is a fine modal, isn't it?"
+      });
+      pingInterval = setInterval(function(websocketService, wsUrl) {
+        ngToast.info({
+            content: 'Connecting...'
+        });
+        connectWebsocket(websocketService, wsUrl);
+      }, 10000, websocketService, wsUrl);
+    }
   });
   
   setTimeout(function() {
     connectWebsocket(websocketService, wsUrl);
   });
-}); 
+}]); 
 
-app.run(function($rootScope, websocketService) {
+app.run(['$rootScope', 'websocketService', 'ngToast', function($rootScope, websocketService, ngToast) {
+    var swap = isomorphic.swap;
+      
     $rootScope.refreshDevices = function(force) {
       websocketService.rpc(force || false ? 'swapserver.refreshSwapDevices' : 'swapserver.getSwapDevices').then(function(devices) {
+        /*ngToast.info({
+            content: 'Got Swap Devices'
+        });*/
         $rootScope.devices = devices;
       });
     };
     
     $rootScope.refreshConfig = function(force) {
       websocketService.rpc(force || false ? 'swapserver.refreshConfig' : 'swapserver.getConfig').then(function(config) {
+        /*ngToast.info({
+            content: 'Got config'
+        });*/
         $rootScope.config = config;
       });
     };
     
     $rootScope.refreshState = function(force) {
       websocketService.rpc(force || false ? 'swapserver.refreshState' : 'swapserver.getState').then(function(state) {
+        /*ngToast.info({
+            content: 'Got state'
+        });*/
         $rootScope.state = state;
       });
     };
       
     $rootScope.refreshLevels = function(force) {
       websocketService.rpc(force || false ? 'swapserver.refreshLevels' : 'swapserver.getLevels').then(function(levels) {
+        /*ngToast.info({
+            content: 'Got levels'
+        });*/
         $rootScope.levels = levels;
         var rooms = new Array();
         levels.forEach(function(level) {
@@ -117,18 +149,15 @@ app.run(function($rootScope, websocketService) {
       
     $rootScope.refreshLights = function(force) {
       websocketService.rpc(force || false ? 'swapserver.refreshLights' : 'swapserver.getLights').then(function(lights) {
+        ngToast.info({
+            content: 'Got lights'
+        });
         $rootScope.lights = lights;
+        $rootScope.$broadcast(swap.MQ.Type.LIGHT_STATUS, lights);
       });
     };
       
-    $rootScope.refreshState = function(force) {
-      websocketService.rpc(force || false ? 'swapserver.refreshState' : 'swapserver.getState').then(function(state) {
-        $rootScope.state = state;
-      });
-    };
-    
     $rootScope.sendMessage = function(message) {      
-      var swap = isomorphic.swap;
       if(message.func == swap.Functions.COMMAND) {
         websocketService.rpc('swapserver.sendSwapCommand', message.address, message.register.id, swap.getValue(message.register.value || message.register.valueStr, message.register.length));
       } else if(message.func == swap.Functions.QUERY) {
@@ -142,4 +171,4 @@ app.run(function($rootScope, websocketService) {
       $rootScope.refreshDevices();
     });
     
-});
+}]);

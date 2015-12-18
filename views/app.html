@@ -1,27 +1,21 @@
 
 <!-- /app/common/
 @{ngCommon('swap')} -->
-@{import('ui-bootstrap-tpls-0.14.3.min.js', 'angular/angular-ui-router.js', 'angular/angular-animate.js', 'angular/angular-sanitize.js', 'd3js/d3.v3.js', 'd3js/c3.js', 'd3js/angular-chart.js', 'ngToast.min.js', 'angucomplete-alt.js')}
-
-<!-- /app/services/ -->
-@{ngService('websocketService')}
+@{import('ui-bootstrap-tpls-0.14.3.min.js', 'angular/angular-ui-router.js', 'angular/angular-animate.js', 'angular/angular-sanitize.js', 'd3js/d3.v3.js', 'd3js/c3.js', 'd3js/angular-chart.js', 'ngToast.min.js', 'angucomplete-alt.js', 'splash.js')}
 
 <!-- /app/css/ -->
 @{ngStyle('app')}
-
-<!-- cdnjs -->
-@{ngLocale('fr-be')}
 
 <!-- /app/controllers/ -->
 @{ngController('domotix', 'devices', 'config', 'network', 'events', 'plugins', 'admin')}
 
 <!-- /app/filters/ -->
 @{ngFilter('filters')}
-      
+
 <toast></toast>
 
 <div>
-  <h1 class="display-1 xirod"><img src="domotix.ico" /> Domotix <small>Carpe Diem</small></h1>
+  <h1 class="display-1 xirod"><img src="domotix.ico" /> Domotix <small>&#9763;</small></h1>
 </div>
 
 <ul class="nav nav-tabs">
@@ -37,15 +31,3 @@
 <div ui-view>
 	<!-- VIEW -->
 </div>
-    
-<div id="warning" class="modal hide fade">
-  <div class="modal-header">
-    <h3>Connection Lost !</h3>
-  </div>
-  <div class="modal-body">
-    <p> </p>The connection to the server has been lost
-  </div>
-  <div class="modal-footer"></div>
-</div>
-
-<!-- @{ngTemplate('list')}-->

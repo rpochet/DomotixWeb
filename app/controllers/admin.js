@@ -1,11 +1,5 @@
-app.controller('AdminCtrl', [
-  '$scope', 'websocketService', function($scope, websocketService) {
+app.controller('AdminCtrl', [ '$scope', 'websocketService', function($scope, websocketService) {
     var swap = isomorphic.swap;
-    
-    $scope.couchDbView = 'packet_event';
-    $scope.cleanByView = function() {
-      return websocketService.rpc('swapserver.cleanByView', $scope.couchDbView);
-    };
     
     $scope.registers = swap.Registers;
     $scope.functions = swap.Functions;
@@ -21,6 +15,9 @@ app.controller('AdminCtrl', [
       return websocketService.rpc('swapserver.sendSwapQuery', swap.address.BROADCAST, swap.Registers.productCode.id);
     };
     
+    /**
+     * Simulate a new device
+     */
     $scope.newDevice = {
       productCode: "0000006400000002",
       hardwareVersion: "00000001",
@@ -33,6 +30,9 @@ app.controller('AdminCtrl', [
       websocketService.rpc('swapserver.messageFromCloud', "00" + swap.num2byte($scope.newDevice.address) + "000300" + swap.num2byte($scope.newDevice.address) + "02" + $scope.newDevice.firmwareVersion);
     };
     
+    /**
+     * Change device address
+     */
     $scope.changeDevice = {
       oldAddress: 255,
       newAddress: 6
@@ -41,6 +41,21 @@ app.controller('AdminCtrl', [
       websocketService.rpc('swapserver.messageFromCloud', "00" + swap.num2byte($scope.changeDevice.oldAddress) + "000400" + swap.num2byte($scope.changeDevice.oldAddress) + "09" + swap.num2byte($scope.changeDevice.newAddress));
     };
     
+    /**
+     * Change light status
+     */
+    $scope.lightStatus = new Array();
+    for(var i=0; i < 24; i++) {
+      $scope.lightStatus.push("00");
+    }
+    $scope.changeLightStatus = function(light) {
+      $scope.lightStatus[light.outputNb] = $scope.lightStatus[light.outputNb] === "00" ? "FE" : "00"; 
+      websocketService.rpc('swapserver.messageFromCloud', "00" + swap.num2byte(light.swapDeviceAddress) + "000100" + swap.num2byte(light.swapDeviceAddress) + "0E" + $scope.lightStatus.join(""));
+    };
+    
+    /**
+     * Message
+     */
     $scope.rawMessage = "(0000)";
     $scope.decodeMessage = function() {
       if($scope.rawMessage.length < 16) {
@@ -57,6 +72,15 @@ app.controller('AdminCtrl', [
     $scope.messageFromCloud = function() {
       websocketService.rpc('swapserver.messageFromCloud', $scope.decodedMessage.toString());
     };
+    
+    /**
+     * CouchDB
+     */
+    $scope.couchDbView = 'packet_event';
+    $scope.cleanByView = function() {
+      return websocketService.rpc('swapserver.cleanByView', $scope.couchDbView);
+    };
+    
   }
 ]);
 

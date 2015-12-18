@@ -1,4 +1,5 @@
 var cradle = require('cradle');
+var $q = require('q');
 var util = require('util');
 var config = F.global.Config;
 var poolr  = require("poolr").createPool;
@@ -12,12 +13,13 @@ F.database = function(name) {
   if(cached === undefined) {
     cached = new PoolrCradle(db.database(name));
     cache[name] = cached;
+    console.log(util.format('Create database %s', name));
   }
-	return cached
+  console.log(util.format('Got database %s', name));
+	return cached;
 };
 
 function PoolrCradle(db) {
-  // always initialize all instance properties
   this.db = db;
   this.pool = poolr(1, db);
   this.pool.on('throttle', function() {
@@ -38,25 +40,30 @@ function PoolrCradle(db) {
 PoolrCradle.prototype.view = function() {
   var args = Array.prototype.slice.call(arguments);
   args.unshift(this.db.view);
-  this.pool.addTask.apply(this.pool, args);
+  return this.pool.addTask.apply(this.pool, args);
 };
 PoolrCradle.prototype.get = function() {
   var args = Array.prototype.slice.call(arguments);
   args.unshift(this.db.get);
-  this.pool.addTask.apply(this.pool, args);
+  return this.pool.addTask.apply(this.pool, args);
 };
 PoolrCradle.prototype.one = function() {
   var args = Array.prototype.slice.call(arguments);
   args.unshift(this.db.one);
-  this.pool.addTask.apply(this.pool, args);
+  return this.pool.addTask.apply(this.pool, args);
 };
 PoolrCradle.prototype.save = function() {
+  var deferred = $q.defer();
   var args = Array.prototype.slice.call(arguments);
+  console.log('PoolrCradle.save: ' + arguments[0] + '-' + arguments[1]);
   args.unshift(this.db.save);
-  this.pool.addTask.apply(this.pool, args);
+  this.pool.addTask.apply(this.pool, args, deferred.resolve);
+  return deferred.promise;
 };
 PoolrCradle.prototype.remove = function() {
+  var deferred = $q.defer();
   var args = Array.prototype.slice.call(arguments);
   args.unshift(this.db.remove);
-  this.pool.addTask.apply(this.pool, args);
+  this.pool.addTask.apply(this.pool, args, deferred.resolve);
+  return deferred.promise;
 };

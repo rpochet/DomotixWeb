@@ -18,6 +18,7 @@ exports.getSwapDevice = function(id) {
         if(error) {
             deferred.reject(new Error(error));
         } else {
+            delete doc._rev;
             deferred.resolve(doc);
         }
     });
@@ -37,6 +38,7 @@ exports.getSwapDevices = function() {
             var ret = {};
             res.json.rows.forEach(function(row) {
                 ret[row.id] = row.value;
+                delete ret[row.id]._rev;
             }, this);
             deferred.resolve(ret);
         }
@@ -55,7 +57,8 @@ exports.createSwapDevice = function(swapDevice) {
         if(error) {
             deferred.reject(new Error(error.error + ': ' + error.reason));
         } else {
-            swapDevice._rev = doc._rev;
+            //swapDevice._rev = doc._rev;
+            delete swapDevice._rev;
             deferred.resolve(swapDevice);
         }
     });
@@ -69,11 +72,14 @@ exports.createSwapDevice = function(swapDevice) {
 */
 exports.updateSwapDevice = function(swapDevice) {
     var deferred = $q.defer();
+    delete swapDevice._rev;
     DATABASE(DATABASE_NAME).save(swapDevice._id, swapDevice._rev, swapDevice, function(error, doc) {
         if(error) {
             deferred.reject(new Error(error.error + ': ' + error.reason));
         } else {
-            swapDevice._rev = doc._rev;
+            console.log('updateSwapDevice.OK: ' + doc._id + '-' + doc._rev);
+            //swapDevice._rev = doc._rev;
+            delete swapDevice._rev;
             deferred.resolve(swapDevice);
         }
     });
@@ -87,11 +93,13 @@ exports.updateSwapDevice = function(swapDevice) {
 */
 exports.deleteSwapDevice = function(swapDevice) {
     var deferred = $q.defer();
+    delete swapDevice._rev;
     DATABASE(DATABASE_NAME).remove(swapDevice._id, swapDevice._rev, function(error, doc) {
         if(error) {
             deferred.reject(new Error(error.error + ': ' + error.reason));
         } else {
-            swapDevice._rev = doc._rev;
+            //swapDevice._rev = doc._rev;
+            delete swapDevice._rev;
             deferred.resolve(swapDevice);
         }
     });

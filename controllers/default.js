@@ -7,10 +7,14 @@ exports.install = function() {
 
 function view_index() {
     var self = this;
-    self.view('app');
-}
+    if(self.req.mobile) {
+        self.view('app-mobile');
+    } else {        
+        self.view('app');
+    }
+};
 
 function stop() {
     // stop server
     F.stop();
-}
+};
