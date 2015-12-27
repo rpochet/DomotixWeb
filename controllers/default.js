@@ -1,5 +1,5 @@
 exports.install = function() {
-    F.route('/*', view_index);
+    F.route('/*', view_index, ['authorize']);
     F.route('/', stop, ['delete', 'authorize']);
     
     SOURCE('swapserver').init();

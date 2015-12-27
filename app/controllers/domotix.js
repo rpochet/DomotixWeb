@@ -1,5 +1,7 @@
 app.controller('DomotixCtrl', [ '$scope', 'websocketService', 'ngToast', function($scope, websocketService, ngToast) {
     var swap = isomorphic.swap;
+    var defaultSize = 50;
+    var defaultDistance = (defaultSize * 2) * (defaultSize * 2);  // 100
     
     /**
      * SDJ
@@ -16,29 +18,36 @@ app.controller('DomotixCtrl', [ '$scope', 'websocketService', 'ngToast', functio
      */
     $scope.handleSvgClick = function($event, level) {
       var x = $event.offsetX / $event.currentTarget.clientWidth * level.width;
-      var y = $event.offsetY / $event.currentTarget.clientHeight * level.height;
+      var y = $event.offsetY / $event.currentTarget.clientHeight * level.height * 1.2;
       $scope.x = x;
       $scope.y = y;
-      $scope.r2 = 0;
+      console.log(x + ' - ' + y);
+      var minDistance = 1000000;
+      var selectedLight = null;
       
       angular.forEach(level.rooms, function(room, idx) {
         angular.forEach(room.lights, function(light, idx) {
-          var pos = $scope.lightPosition(room, light);
-          var r2 = ((x - pos[0]) * (x - pos[0]) + (y - pos[1]) * (y - pos[1]));
-          $scope.r2 = r2;
-          if (r2 < 10000) { // 100
-            ngToast.info({
-              content: 'Click on ' + light.name,
-              dismissOnTimeout: true
-            });
-            websocketService.rpc('swapserver.sendSwapPacket', 
-              swap.LightController.Functions.Light, 
-              light.swapDeviceAddress, 
-              swap.LightController.Registers.Outputs.id, 
-              [light.outputNb, swap.LightController.Values.Toggle]);
+          var lightPosition = $scope.lightPosition(room, light);
+          var r2 = ((x - lightPosition.x) * (x - lightPosition.x) + (y - lightPosition.y) * (y - lightPosition.y));
+          console.log(light.name + ' - ' + r2);
+          if(r2 < minDistance) {
+            minDistance = r2;
+            selectedLight = light;
           }
         });  
       });
+      
+      if (selectedLight && (minDistance < defaultDistance)) {
+        ngToast.info({
+          content: 'Click on ' + selectedLight.name,
+          dismissOnTimeout: true
+        });
+        websocketService.rpc('swapserver.sendSwapPacket', 
+          swap.LightController.Functions.Light, 
+          selectedLight.swapDeviceAddress, 
+          swap.LightController.Registers.Outputs.id, 
+          [selectedLight.outputNb, swap.LightController.Values.Toggle]);
+      }
     };
     
     $scope.devicePosition = function(device) {
@@ -46,30 +55,33 @@ app.controller('DomotixCtrl', [ '$scope', 'websocketService', 'ngToast', functio
     };
     
     $scope.lightPosition = function(room, light) {
-      return [room.location.x + light.location.x, room.location.y + light.location.y];
+      return {
+        x: room.location.x + light.location.x + (light.layout ? light.layout.x || 0 : 0), 
+        y: room.location.y + light.location.y + (light.layout ? light.layout.y || 0 : 0)
+      };
     };
     
     $scope.lightDef = function(room, light) {
-      /*if (light.layout.type === 'square') {
+      if (light.layout.type === 'square') {
         return '#l2';
-      } else {*/
+      } else {
         return '#l1';
-      //}
+      }
     };
     
     $scope.lightFill = function(room, light) {
       if (light.status === 0) {
-        return 'url(#g1)';
+        return 'url(' + $scope.lightDef(room, light) + '_off)';
       } else {
-        return 'url(#g2)';
+        return 'url(' + $scope.lightDef(room, light) + '_on)';
       }
     };
     
     $scope.lightTransform = function(room, light) {
-      /*if (light.layout.type === 'circle') {
-        return 'scale(' + ((light.layout.r || 50) / 50) + ')';
-      }*/
-      return 'scale(1)';
+      var lightPosition = $scope.lightPosition(room, light);
+      var t = 'translate(' + lightPosition.x + ', ' + lightPosition.y + ')';
+      t += ' scale(' + ((light.layout.r || defaultSize) / defaultSize) + ')';
+      return t;
     };
     
     $scope.$on(swap.MQ.Type.SWAP_DEVICE, function(event, swapDevice) {
@@ -87,18 +99,20 @@ app.controller('DomotixCtrl', [ '$scope', 'websocketService', 'ngToast', functio
     });
     
     $scope.$on(swap.MQ.Type.LIGHT_STATUS, function(event, lightStatus) {
-      $scope.$apply(function() {
-        angular.forEach($scope.levels, function(level) {
-          angular.forEach(level.rooms, function(room) {
-            angular.forEach(room.lights, function(light) {
-              if (lightStatus[light.swapDeviceAddress]) {
-                light.status = lightStatus[light.swapDeviceAddress].value[light.outputNb];
-                return;
-              }
+      if(lightStatus) {
+        //$scope.$apply(function() {
+          angular.forEach($scope.levels, function(level) {
+            angular.forEach(level.rooms, function(room) {
+              angular.forEach(room.lights, function(light) {
+                if (lightStatus[light.swapDeviceAddress]) {
+                  light.status = lightStatus[light.swapDeviceAddress].value[light.outputNb];
+                  return;
+                }
+              });
             });
           });
-        });
-      });
+        //});
+      }
     });
     
     var displayTemperature = function(temperature) {

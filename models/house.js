@@ -45,3 +45,8 @@ exports.getLights = function() {
     });
     return deferred.promise;
 };
+
+exports.clearCache = function() {
+    var db = DATABASE(DATABASE_NAME);
+    db.clearCache.apply(db, arguments);
+};

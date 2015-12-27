@@ -3,6 +3,9 @@
 // Version 1.02
 
 var events = require('events');
+var util = require('util');
+var basicAuth = require('basic-auth');
+
 var SUGAR = 'AtH101s84';
 var USERAGENT = 20;
 
@@ -33,51 +36,56 @@ Users.prototype._onAuthorization = function(req, res, flags, callback) {
     var self = this;
     var options = self.options;
     var cookie = req.cookie(options.cookie) || '';
-
-    if (cookie === '' || cookie.length < 10) {
-        callback(false);
-        return;
-    }
-
-    var value = framework.decrypt(cookie, options.secret, false);
-    if (value === null || value.length === 0) {
-        callback(false);
-        return;
-    }
-
-    var arr = value.split('|');
-
-    if (arr[1] !== SUGAR || arr[3] !== req.ip || arr[2] !== req.headers['user-agent'].substring(0, USERAGENT).replace(/\s/g, '')) {
-        callback(false);
-        return;
-    }
-
-    var id = arr[0];
-    var user = self.users[id];
-
-    if (user) {
-        user.expire = new Date().add('m', self.options.expireSession);
-        req.user = user.user;
-        callback(true);
-        return;
-    }
-
-    self.onAuthorization(id, function(user) {
-
-        if (!user || !options.autoLogin) {
-            // remove cookie
-            res.cookie(options.cookie, '', new Date().add('d', -1));
+    var credentials = basicAuth(req);
+    var id = undefined;
+    
+    if (!util.isNullOrUndefined(cookie) && cookie.length > 0) {
+        var value = framework.decrypt(cookie, options.secret, false);
+        if (value === null || value.length === 0) {
             callback(false);
             return;
         }
+    
+        var arr = value.split('|');
+    
+        if (arr[1] !== SUGAR || arr[3] !== req.ip || arr[2] !== req.headers['user-agent'].substring(0, USERAGENT).replace(/\s/g, '')) {
+            callback(false);
+            return;
+        }
+        id = arr[0];
+    } else if (!util.isNullOrUndefined(credentials)) {
+        id = credentials.name;
+    } else {
+        res.statusCode = 401;
+        if(res.setHeader) {
+            res.setHeader('WWW-Authenticate', 'Basic realm="Domotix"');
+        }
+        if(res.throw401) {            
+            res.throw401('Basic realm="Domotix"');
+        }
+        callback(false);
+        return;
+    }
 
-        req.user = user;
-        self.users[id] = { user: user, expire: new Date().add('m', self.options.expireSession) };
-        self.emit('login', id, user);
-        self.refresh();
-        callback(true);
+    var user = self.users[id];
+    if (!user) {
+        user = {};
+        self.users[id] = user;
+    }
 
-    }, flags);
+    self.users[id].expire = new Date().add('m', self.options.expireSession);
+    req.user = user;
+    self._writeOK(id, req, res);
+    self.emit('login', id, user);
+    self.refresh();
+    callback(true);
+
+    if (!user || !options.autoLogin) {
+        // remove cookie
+        res.cookie(options.cookie, '', new Date().add('d', -1));
+        callback(false);
+        return;
+    }
 
 };
 
@@ -269,7 +277,7 @@ function service(counter) {
 
 function authorization(req, res, flags, callback) {
 
-    if (users.onAuthorization !== null) {
+    if (users._onAuthorization !== null) {
         users._onAuthorization(req, res, flags, callback);
         return;
     }

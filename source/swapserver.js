@@ -315,6 +315,7 @@ exports.getLevels = function() {
 };
 
 exports.refreshLevels = function() {
+    var self = this;
     logger.info("Levels initialisation...");
     MODEL("house").getLevels().then(function(data) {
         levels = data;               
@@ -323,8 +324,9 @@ exports.refreshLevels = function() {
                 room.lights = new Array();
             });
         });
+        //F.emit(swap.MQ.Type._ALL, swap.MQ.Type., levels);
         logger.info("Levels initialised");
-        refreshLights();
+        self.refreshLights();
     });
 };
 
@@ -334,6 +336,7 @@ exports.getLights = function() {
 
 exports.refreshLights = function() {
     logger.info("Lights initialisation...");
+    //MODEL("house").clearCache("lights");
     MODEL("house").getLights().then(function(data) {
         lights = data;
         logger.info("Lights initialised");

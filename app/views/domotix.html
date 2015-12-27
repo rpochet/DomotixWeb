@@ -10,30 +10,43 @@
         <svg viewBox="0 0 1200 1200" version="1.1" width="1200px" height="1200px" ng-click="handleSvgClick($event, level)">
           <defs>
             <circle id="l1" cx="0" cy="0" r="50" stroke-width="0"></circle>
-            <rect id="l2" x="-25" y="-25" width="50" height="50" stroke-width="0"></rect>
-            <radialGradient id="g1" cx="50%" cy="50%" r="50%">
+            <radialGradient id="l1_off" r="50%">
               <stop stop-color="grey" offset="0%"></stop>
               <stop stop-color="white" offset="100%"></stop>
             </radialGradient>
-            <radialGradient id="g2" cx="50%" cy="50%" r="50%">
+            <radialGradient id="l1_on" r="50%">
               <stop stop-color="black" offset="0%"></stop>
               <stop stop-color="teal" offset="50%"></stop>
               <stop stop-color="white" offset="100%"></stop>
             </radialGradient>
+            
+            <rect id="l2" x="-50" y="-50" width="100" height="100" stroke-width="0"></rect>
+            <radialGradient id="l2_off" r="75%">
+              <stop stop-color="grey" offset="0%"></stop>
+              <stop stop-color="white" offset="100%"></stop>
+            </radialGradient>
+            <radialGradient id="l2_on" r="75%">
+              <stop stop-color="black" offset="0%"></stop>
+              <stop stop-color="teal" offset="50%"></stop>
+              <stop stop-color="white" offset="100%"></stop>
+            </radialGradient>
+            
+            <path id="l3" d="M0,0 v-50 a50,50 0 0,0 -50,50 z" fill="yellow" stroke="blue" stroke-width="5" />
+        
           </defs>
           <path id="level{{level.id}}" d="{{level.path}}" fill="white" stroke="#428bca" stroke-width="6"></path>
+          
+          <path d="M100,100 h-50 a50,50 0 0,0 100,0 z"
+        fill="yellow" stroke="blue" stroke-width="5" />
+
+
+          <use xlink:href="#l3" transform="translat(200,200)"></use>
+            
           <g ng-repeat="room in level.rooms">
             <path id="room{{room.id}}" d="{{room.path}}" fill="white" stroke="#428bca" stroke-width="3"></path>
             
             <use ng-repeat="light in room.lights" id="light-{{light.swapDeviceAddress}}-{{light.outputNb}}" 
-              x="{{lightPosition(room, light)[0]}}" y="{{lightPosition(room, light)[1]}}" 
               xlink:href="{{lightDef(room, light)}}" fill="{{lightFill(room, light)}}" transform="{{lightTransform(room, light)}}"></use>
-            
-            <g ng-repeat="light in room.lights">
-              <circle cx="{{lightPosition(room, light)[0]}}" cy="{{lightPosition(room, light)[1]}}" r="50" stroke="teal" stroke-width="1" style="fill-opacity: 0;"></circle>
-              <circle cx="{{lightPosition(room, light)[0]}}" cy="{{lightPosition(room, light)[1]}}" r="75" stroke="teal" stroke-width="1" style="fill-opacity: 0;"></circle>
-              <circle cx="{{lightPosition(room, light)[0]}}" cy="{{lightPosition(room, light)[1]}}" r="100" stroke="teal" stroke-width="1" style="fill-opacity: 0;"></circle>
-            </g>
             
             <g ng-repeat="device in devices | objectToArray | filter: { location: { room_id: room.id }}">
               <text x="{{devicePosition(device)[0]}}" y="{{devicePosition(device)[1]}}" ng-show="device.temperature">{{device.temperature.value}}</text>

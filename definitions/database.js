@@ -67,3 +67,9 @@ PoolrCradle.prototype.remove = function() {
   this.pool.addTask.apply(this.pool, args, deferred.resolve);
   return deferred.promise;
 };
+
+PoolrCradle.prototype.clearCache = function() {
+  var args = Array.prototype.slice.call(arguments);
+  args.unshift(this.db.clearCache);
+  return this.pool.addTask.apply(this.pool, args);
+};

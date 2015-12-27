@@ -2,7 +2,7 @@ var swap = isomorphic.swap;
 
 exports.install = function() {
     F.route('/ws', message_http, ['json', 'authorize']);
-    F.websocket('/', message_webSocket, ['json']);
+    F.websocket('/', message_webSocket, ['json', 'authorize']);
 };
 
 var users = {};
