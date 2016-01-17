@@ -195,14 +195,20 @@ var handleSwapPacket = function(swapPacket, swapDevice, swapRegister) {
             state.saveState(swap.MQ.Type.LIGHT_STATUS, swapDevice.address, swapRegister.value);
         } else if(swapRegister.id == swap.LightController.Registers.PressureTemperature.id) {
             swapRegister.endpoints.forEach(function(endpoint) {
-                state.saveState(endpoint.name, swapDevice.address, swap.getRegisterPartInUnit(swapRegister, endpoint, endpoint.units[0]));
+                var stateValue = swap.getRegisterPartInUnit(swapRegister, endpoint, endpoint.units[0]);
+                stateValue.location = swapDevice.location;
+                state.saveState(endpoint.name, swapDevice.address, stateValue);
             });
         }
     } else if(swapDevice.product.productCode == swap.LightSwitch.productCode) {
         if(swapRegister.id == swap.LightSwitch.Registers.Voltage.id) {
-            state.saveState(swap.MQ.Type.VOLTAGE, swapDevice.address, swap.getRegisterPartInUnit(swapRegister, swapRegister.endpoints[0], swapRegister.endpoints[0].units[0]));
+            var stateValue = swap.getRegisterPartInUnit(swapRegister, swapRegister.endpoints[0], swapRegister.endpoints[0].units[0]);
+            stateValue.location = swapDevice.location;
+            state.saveState(swap.MQ.Type.VOLTAGE, swapDevice.address, stateValue);
         } else if(swapRegister.id == swap.LightSwitch.Registers.Temperature.id) {
-            state.saveState(swap.MQ.Type.TEMPERATURE, swapDevice.address, swap.getRegisterPartInUnit(swapRegister, swapRegister.endpoints[0], swapRegister.endpoints[0].units[0]));
+            var stateValue = swap.getRegisterPartInUnit(swapRegister, swapRegister.endpoints[0], swapRegister.endpoints[0].units[0]);
+            stateValue.location = swapDevice.location;
+            state.saveState(swap.MQ.Type.TEMPERATURE, swapDevice.address, stateValue);
         }
     }
 };
@@ -319,7 +325,8 @@ exports.refreshLevels = function() {
     logger.info("Levels initialisation...");
     MODEL("house").getLevels().then(function(data) {
         levels = data;               
-        levels.forEach(function(level) {                
+        levels.forEach(function(level) {      
+            level.lights = new Array();          
             level.rooms.forEach(function(room) {
                 room.lights = new Array();
             });
@@ -339,10 +346,11 @@ exports.refreshLights = function() {
     //MODEL("house").clearCache("lights");
     MODEL("house").getLights().then(function(data) {
         lights = data;
-        logger.info("Lights initialised");
         lights.forEach(function(light) {
-            light.location.room_id;
-            levels.forEach(function(level) {                
+            levels.forEach(function(level) {  
+                if(light.location.room_id == -1) {
+                    level.lights.push(light);
+                }              
                 level.rooms.forEach(function(room) {
                     if(light.location.room_id == room.id) {
                         room.lights.push(light);
@@ -350,6 +358,7 @@ exports.refreshLights = function() {
                 });
             });
         });
+        logger.info("Lights initialised");
     });
 };
 

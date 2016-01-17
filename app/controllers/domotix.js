@@ -4,6 +4,20 @@ app.controller('DomotixCtrl', [ '$scope', 'websocketService', 'ngToast', functio
     var defaultDistance = (defaultSize * 2) * (defaultSize * 2);  // 100
     
     /**
+     * Should use SVG element
+     */
+    var getDistance = function(x, y, level, room, light) {
+      var lightPosition = $scope.lightPosition(level, room, light);
+      if(light.layout && light.layout.dx && light.layout.dy) {
+        lightPosition.x += light.layout.dx;
+        lightPosition.y += light.layout.dy;
+      }
+      var r2 = ((x - lightPosition.x) * (x - lightPosition.x) + (y - lightPosition.y) * (y - lightPosition.y));
+      console.log(light.name + ' - ' + r2);
+      return r2;
+    };
+    
+    /**
      * SDJ
      * 195/175 + 775/684 = 
      *  970/ 859: data
@@ -25,11 +39,17 @@ app.controller('DomotixCtrl', [ '$scope', 'websocketService', 'ngToast', functio
       var minDistance = 1000000;
       var selectedLight = null;
       
+      angular.forEach(level.lights, function(light, idx) {
+        var r2 = getDistance(x, y, level, null, light);
+        if(r2 < minDistance) {
+          minDistance = r2;
+          selectedLight = light;
+        }
+      });
+      
       angular.forEach(level.rooms, function(room, idx) {
         angular.forEach(room.lights, function(light, idx) {
-          var lightPosition = $scope.lightPosition(room, light);
-          var r2 = ((x - lightPosition.x) * (x - lightPosition.x) + (y - lightPosition.y) * (y - lightPosition.y));
-          console.log(light.name + ' - ' + r2);
+          var r2 = getDistance(x, y, level, room, light);
           if(r2 < minDistance) {
             minDistance = r2;
             selectedLight = light;
@@ -50,37 +70,44 @@ app.controller('DomotixCtrl', [ '$scope', 'websocketService', 'ngToast', functio
       }
     };
     
-    $scope.devicePosition = function(device) {
+    $scope.devicePosition = function(level, room, device) {
       return [device.location.room.location.x + device.location.x, device.location.room.location.y + device.location.y];
     };
     
-    $scope.lightPosition = function(room, light) {
+    $scope.lightPosition = function(level, room, light) {
+      var offX = room ? room.location.x : 0;//level.location.x;
+      var offY = room ? room.location.y : 0;//level.location.y;
       return {
-        x: room.location.x + light.location.x + (light.layout ? light.layout.x || 0 : 0), 
-        y: room.location.y + light.location.y + (light.layout ? light.layout.y || 0 : 0)
+        x: offX + (light.location.x || 0) + (light.layout ? light.layout.x || 0 : 0), 
+        y: offY + (light.location.y || 0) + (light.layout ? light.layout.y || 0 : 0)
       };
     };
     
-    $scope.lightDef = function(room, light) {
-      if (light.layout.type === 'square') {
-        return '#l2';
+    $scope.lightDef = function(level, room, light) {
+      if (light.layout && light.layout.type) {
+        return '#' + light.layout.type;
       } else {
-        return '#l1';
+        return '#circle';
       }
     };
     
-    $scope.lightFill = function(room, light) {
+    $scope.lightFill = function(level, room, light) {
       if (light.status === 0) {
-        return 'url(' + $scope.lightDef(room, light) + '_off)';
+        return 'url(' + $scope.lightDef(level, room, light) + '_off)';
       } else {
-        return 'url(' + $scope.lightDef(room, light) + '_on)';
+        return 'url(' + $scope.lightDef(level, room, light) + '_on)';
       }
     };
     
-    $scope.lightTransform = function(room, light) {
-      var lightPosition = $scope.lightPosition(room, light);
+    $scope.lightTransform = function(level, room, light) {
+      var lightPosition = $scope.lightPosition(level, room, light);
       var t = 'translate(' + lightPosition.x + ', ' + lightPosition.y + ')';
-      t += ' scale(' + ((light.layout.r || defaultSize) / defaultSize) + ')';
+      if(light.layout && light.layout.r) {
+        t += ' scale(' + ((light.layout.r) / defaultSize) + ')';
+      }
+      if(light.layout && light.layout.rot) {
+        t += ' rotate(' + (light.layout.rot) + ')';
+      }
       return t;
     };
     

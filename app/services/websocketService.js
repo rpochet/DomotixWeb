@@ -28,7 +28,8 @@ app.factory('websocketService', ['$rootScope', '$q', 'ngToast', function($rootSc
             _ws.onmessage = onMessage;
             _ws.onopen = function () {
                 ngToast.info({
-                    content: 'Websocket open'
+                    content: 'Websocket open',
+                    dismissOnTimeout: true
                 });
             	$rootScope.$broadcast('websocket:ready');
             };

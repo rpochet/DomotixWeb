@@ -8,19 +8,19 @@
     "node": ">= 0.6.0"
   },
   "dependencies": {
-    "total.js": "^1.9.3",
     "async": "*",
     "config": "0.4.35",
     "cradle": "0.6.7",
     "jade": "*",
-    "node-yaml-config": "*",
     "log4js": "*",
     "moment": "*",
+    "node-yaml-config": "*",
     "opener": "^1.4.1",
+    "poolr": "*",
     "request": "*",
     "serialport": "*",
     "string": "*",
-    "poolr": "*"
+    "total.js": "^1.9.6-3"
   },
   "scripts": {
     "start": "node app.js"

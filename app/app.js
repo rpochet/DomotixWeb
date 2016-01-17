@@ -150,7 +150,8 @@ app.run(['$rootScope', 'websocketService', 'ngToast', function($rootScope, webso
     $rootScope.refreshLights = function(force) {
       websocketService.rpc(force || false ? 'swapserver.refreshLights' : 'swapserver.getLights').then(function(lights) {
         ngToast.info({
-            content: 'Got lights'
+            content: 'Got lights',
+            dismissOnTimeout: true
         });
         $rootScope.lights = lights;
         $rootScope.$broadcast(swap.MQ.Type.LIGHT_STATUS, lights);

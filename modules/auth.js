@@ -40,19 +40,7 @@ Users.prototype._onAuthorization = function(req, res, flags, callback) {
     var id = undefined;
     
     if (!util.isNullOrUndefined(cookie) && cookie.length > 0) {
-        var value = framework.decrypt(cookie, options.secret, false);
-        if (value === null || value.length === 0) {
-            callback(false);
-            return;
-        }
-    
-        var arr = value.split('|');
-    
-        if (arr[1] !== SUGAR || arr[3] !== req.ip || arr[2] !== req.headers['user-agent'].substring(0, USERAGENT).replace(/\s/g, '')) {
-            callback(false);
-            return;
-        }
-        id = arr[0];
+        id = cookie;
     } else if (!util.isNullOrUndefined(credentials)) {
         id = credentials.name;
     } else {
@@ -73,20 +61,16 @@ Users.prototype._onAuthorization = function(req, res, flags, callback) {
         self.users[id] = user;
     }
 
-    self.users[id].expire = new Date().add('m', self.options.expireSession);
+    //self.users[id].expire = new Date().add('m', self.options.expireSession);
+    
     req.user = user;
-    self._writeOK(id, req, res);
+    
+    //self._writeOK(id, controller.req, controller.res);
+    res.cookie(self.options.cookie, id, new Date().add('y', 1));
+    
     self.emit('login', id, user);
-    self.refresh();
+    //self.refresh();
     callback(true);
-
-    if (!user || !options.autoLogin) {
-        // remove cookie
-        res.cookie(options.cookie, '', new Date().add('d', -1));
-        callback(false);
-        return;
-    }
-
 };
 
 /*
@@ -97,7 +81,7 @@ Users.prototype._onAuthorization = function(req, res, flags, callback) {
     @expire {Number} :: expire in minutes
     return {Users}
 */
-Users.prototype.login = function(controller, id, user, expire) {
+/*Users.prototype.login = function(controller, id, user, expire) {
 
     id = id.toString();
 
@@ -113,7 +97,7 @@ Users.prototype.login = function(controller, id, user, expire) {
     self._writeOK(id, controller.req, controller.res);
 
     return self;
-};
+};*/
 
 /*
     Logoff an user
@@ -121,7 +105,7 @@ Users.prototype.login = function(controller, id, user, expire) {
     @id {Number}
     return {Users}
 */
-Users.prototype.logoff = function(controller, id) {
+/*Users.prototype.logoff = function(controller, id) {
 
     id = id.toString();
 
@@ -135,7 +119,7 @@ Users.prototype.logoff = function(controller, id) {
     self.emit('logoff', id, user || null);
 
     return self;
-};
+};*/
 
 /*
     Change an user
@@ -143,7 +127,7 @@ Users.prototype.logoff = function(controller, id) {
     @newUser {Object}
     return {Users}
 */
-Users.prototype.change = function(id, newUser, expire) {
+/*Users.prototype.change = function(id, newUser, expire) {
 
     id = id.toString();
 
@@ -157,7 +141,7 @@ Users.prototype.change = function(id, newUser, expire) {
     self.emit('change', id, newUser, old);
 
     return self;
-};
+};*/
 
 /*
     Update an user
@@ -165,7 +149,7 @@ Users.prototype.change = function(id, newUser, expire) {
     @fn {function}
     return {Users}
 */
-Users.prototype.update = function(id, fn) {
+/*Users.prototype.update = function(id, fn) {
 
     id = id.toString();
 
@@ -183,7 +167,7 @@ Users.prototype.update = function(id, fn) {
     self.emit('update', id, old);
 
     return self;
-};
+};*/
 
 /*
     Set Expires
@@ -191,7 +175,7 @@ Users.prototype.update = function(id, fn) {
     @expire {Date}
     return {Users}
 */
-Users.prototype.setExpires = function(id, expire) {
+/*Users.prototype.setExpires = function(id, expire) {
     id = id.toString();
 
     var self = this;
@@ -202,25 +186,25 @@ Users.prototype.setExpires = function(id, expire) {
 
     self.users[id].expire = utils.isDate(expire) ? expire : new Date().add('m', expire || self.options.expireSession).getTime();
     return self;
-};
+};*/
 
 /*
     Internal
 */
-Users.prototype.refresh = function() {
+/*Users.prototype.refresh = function() {
     var self = this;
     var keys = Object.keys(self.users);
 
     self.online = keys.length;
-    self.emit('online', self.online);
+    self.emit('online', self.users);
 
     return self;
-};
+};*/
 
 /*
     Internal
 */
-Users.prototype.recycle = function() {
+/*Users.prototype.recycle = function() {
 
     var self = this;
     var keys = Object.keys(self.users);
@@ -243,37 +227,37 @@ Users.prototype.recycle = function() {
 
     self.refresh();
     return self;
-};
+};*/
 
 /*
     Internal
 */
-Users.prototype._writeOK = function(id, req, res) {
+/*Users.prototype._writeOK = function(id, req, res) {
     var self = this;
     var value = id + '|' + SUGAR + '|' + req.headers['user-agent'].substring(0, USERAGENT).replace(/\s/g, '') + '|' + req.ip + '|';
     res.cookie(self.options.cookie, framework.encrypt(value, self.options.secret), new Date().add('d', self.options.expireCookie));
     return this;
-};
+};*/
 
 /*
     Internal
 */
-Users.prototype._writeNO = function(res) {
+/*Users.prototype._writeNO = function(res) {
     var self = this;
     res.cookie(self.options.cookie, '', new Date().add('y', -1));
     return self;
-};
+};*/
 
 var users = new Users();
 module.exports = users;
 module.exports.name = module.exports.id = 'auth';
 module.exports.version = '1.01';
 
-function service(counter) {
+/*function service(counter) {
     // Each 3 minutes
     if (counter % 3 === 0)
         users.recycle();
-}
+}*/
 
 function authorization(req, res, flags, callback) {
 
@@ -290,19 +274,19 @@ module.exports.install = function() {
     // Backward compatibility
     var options = framework.version >= 1900 ? arguments[0] : arguments[1];
 
-    SUGAR = (framework.config.name + framework.config.version + SUGAR).replace(/\s/g, '');
+    //SUGAR = (framework.config.name + framework.config.version + SUGAR).replace(/\s/g, '');
 
-    framework.onAuthorization = authorization;
-    framework.on('service', service);
+    framework.onAuthorize = authorization;
+    /*framework.on('service', service);
 
     if (options)
         users.options = Utils.copy(options);
 
-    this.emit('auth', users);
+    this.emit('auth', users);*/
 };
 
 module.exports.uninstall = function() {
-    if (framework.onAuthorization === authorization)
-        framework.onAuthorization = null;
-    framework.removeListener('service', service);
+    if (framework.onAuthorize === authorization)
+        framework.onAuthorize = null;
+    //framework.removeListener('service', service);
 };
