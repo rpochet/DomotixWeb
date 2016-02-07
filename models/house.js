@@ -4,7 +4,7 @@ exports.version = '1.0.0';
 var DATABASE_NAME  = 'domotix';
 var LEVELS_VIEW_NAMESPACE = 'domotix';
 var LEVELS_VIEW_NAME = 'levels';
-//var LIGHTS_DOCUMENT_NAME = 'lights';
+var LIGHTS_DOCUMENT_NAME = 'lights';
 var $q = require('q');
 var util = require('util');
 
@@ -34,7 +34,7 @@ exports.getLevels = function() {
     Get all lights
     return {SwapDevice}
 */
-/*exports.getLights = function() {
+exports.getLights = function() {
     var deferred = $q.defer();
     DATABASE(DATABASE_NAME).get(LIGHTS_DOCUMENT_NAME, function(error, res) {
         if(error) {
@@ -44,7 +44,7 @@ exports.getLevels = function() {
         }
     });
     return deferred.promise;
-};*/
+};
 
 exports.clearCache = function() {
     var db = DATABASE(DATABASE_NAME);

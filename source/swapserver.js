@@ -7,7 +7,7 @@ var State = MODULE("state");
 var swapProducts = undefined;
 var swapDevices = undefined;
 var levels = undefined;
-//var lights = undefined;
+var lights = undefined;
 var config = F.global.Config;
 var swap = isomorphic.swap;
 var serialModem = null;
@@ -283,7 +283,7 @@ exports.init = function() {
     
     this.refreshLevels();
     
-    //this.refreshLights();
+    this.refreshLights();
     
     this.refreshSwapProducts();
     
@@ -379,7 +379,7 @@ exports.refreshLevels = function() {
         });
         //F.emit(swap.MQ.Type._ALL, swap.MQ.Type., levels);
         logger.info("Levels initialised");
-        //self.refreshLights();
+        self.refreshLights();
     });
 };
 
