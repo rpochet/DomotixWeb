@@ -6,7 +6,9 @@ app.factory('websocketService', ['$rootScope', '$q', 'ngToast', function($rootSc
 
     function onMessage(e) {
         var data = JSON.parse(decodeURIComponent(e.data));
+        console.debug('------- WS -----------');
         console.debug(data);
+        console.debug('----------------------');
         if(data.type == 'rpc') {
             if(data.error) {
                 deferred[data.sid].reject(data.error);
@@ -28,8 +30,7 @@ app.factory('websocketService', ['$rootScope', '$q', 'ngToast', function($rootSc
             _ws.onmessage = onMessage;
             _ws.onopen = function () {
                 ngToast.info({
-                    content: 'Websocket open',
-                    dismissOnTimeout: true
+                    content: 'Websocket open'
                 });
             	$rootScope.$broadcast('websocket:ready');
             };

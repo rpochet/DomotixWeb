@@ -7,7 +7,7 @@ var State = MODULE("state");
 var swapProducts = undefined;
 var swapDevices = undefined;
 var levels = undefined;
-var lights = undefined;
+//var lights = undefined;
 var config = F.global.Config;
 var swap = isomorphic.swap;
 var serialModem = null;
@@ -18,8 +18,34 @@ var log4js = require("log4js")
 log4js.configure('configs/log4js_configuration.json', { reloadSecs: 300 });
 var logger = log4js.getLogger(__filename.split("/").pop(-1).split(".")[0]);
 
+// New Device
 var newSwapDevice = undefined;
 var newSwapDeviceCleaner = undefined;
+
+// Upgrade mode
+var upgradeInProgress = false;
+var upgradedDevice = null;
+var firmware = null;
+
+var startUpgrade = function(devAddress, firmwareId) {
+    upgradeInProgress = true;
+    upgradedDevice = {
+        address: devAddress
+    };
+    firmware = {
+        firmwareId: firmwareId,
+        ready: false,
+        requested: 0,
+        data: []
+    };
+    MODEL("products").getSwapDeviceFirmare(firmwareId).then(function(data) {
+        firmware.data = data.hexFile;
+        firmware.ready = true;
+        logger.info("Firmware %s ready for SWAP Device %s", firmware.firmwareId, upgradedDevice.address);
+    }).catch(function(err) {
+        logger.error("Failed to load SWAP Device firmware %s", firmware.firmwareId, err);
+    }); 
+}
 
 var sendSwapPacketArgs = function(functionCode, address, registerId, regValue) {
     var swapPacket = new swap.SwapPacket();
@@ -96,9 +122,29 @@ var swapPacketReceived = function(swapPacket) {
         newSwapDevice._id = "DEV" + swap.num2byte(swapPacket.regAddress);
         newSwapDevice.address = swapPacket.regAddress;
     }
-    if(swapPacket.func !== swap.Functions.STATUS) {
-        logger.debug(util.format("SWAP Device of type %s is not supported", swapPacket.func));
+    
+    if(swapPacket.func == swap.Functions.COMMAND) {
+        logger.debug(util.format("SWAP Device of type QUERY is not supported"));
         return;
+    } else if(swapPacket.func == swap.Functions.QUERY) {
+        if(upgradeInProgress || (swapDevice == undefined && swapPacket.regId == swap.Register.upgrade.id)) {
+            logger.info(util.format("SWAP Device %s waiting for HEX file line %s", upgradedDevice.address, swapPacket.regValue));
+            if(firmware.ready) {
+                firmware.requested = swap.arrayToInt(swapPacket.regValue);
+                var line = firmware.data[firmware.requested].substring(3);
+                logger.info("Sending HEX file line %s to device %s with data %s...", firmware.requested, upgradedDevice.address, line);
+                sendSwapPacketArgs(swap.Functions.STATUS, upgradedDevice.address, swapPacket.regId, line);       
+            }
+        } else {
+            logger.debug(util.format("SWAP Device of type QUERY is not supported"));
+        }
+        return;            
+    } else if(upgradeInProgress 
+                && swapPacket.func == swap.Functions.STATUS 
+                && swapPacket.regAddress == upgradedDevice.address 
+                && swapPacket.regId == swap.Registers.state.id 
+                && swapPacket.regValue[0] == swap.SwapStates.RESTART) {
+        this.upgradeInProgress = false;
     }
     
     switch(swapPacket.regId) {
@@ -237,7 +283,7 @@ exports.init = function() {
     
     this.refreshLevels();
     
-    this.refreshLights();
+    //this.refreshLights();
     
     this.refreshSwapProducts();
     
@@ -333,12 +379,13 @@ exports.refreshLevels = function() {
         });
         //F.emit(swap.MQ.Type._ALL, swap.MQ.Type., levels);
         logger.info("Levels initialised");
-        self.refreshLights();
+        //self.refreshLights();
     });
 };
 
 exports.getLights = function() {
-    return lights;
+    logger.debug(state.getStates());
+    return state.getState(swap.MQ.Type.LIGHT_STATUS);
 };
 
 exports.refreshLights = function() {
@@ -372,16 +419,20 @@ exports.getState = function() {
 };
 
 exports.emitState = function() {
-    for(var stateType in state.getState()) {
-        if(stateType !== "last") {
+    for(var stateType in state.getStates()) {
+        if(stateType !== "last" && !stateType.startsWith('_')) {
             F.emit(swap.MQ.Type._ALL, stateType, state[stateType]);
         }
     }
 };
     
-exports.sendSwapQuery = function(regAddress, regId) {
-    logger.info("Sending SwapQuery to register %s on device %s...", regId, regAddress);
-    sendSwapPacketArgs(swap.Functions.QUERY, regAddress, regId);
+exports.sendSwapQuery = function(regAddress, regId, regValue) {
+    if(regValue) {
+        logger.info("Sending SwapQuery to register %s on device %s with data %s...", regId, regAddress, regValue);        
+    } else {        
+        logger.info("Sending SwapQuery to register %s on device %s...", regId, regAddress);
+    }
+    sendSwapPacketArgs(swap.Functions.QUERY, regAddress, regId, regValue);
 };
 
 exports.sendSwapCommand = function(regAddress, regId, regValue) {
@@ -412,4 +463,8 @@ exports.updateDevice = function(updatedSwapDevice) {
         saveSwapDevice(updatedSwapDevice);
     }
     throw new Error("Invalid SWAP Device " + updatedSwapDevice._id);
-}
+};
+
+exports.startUpgrade = function(devAddress, firmareId) {
+    startUpgrade(devAddress, firmareId);
+};

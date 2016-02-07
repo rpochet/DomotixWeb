@@ -7,7 +7,7 @@ var connectWebsocket = function(websocketService, wsUrl) {
 
 app.config(['ngToastProvider', function(ngToastProvider) {
     ngToastProvider.configure({
-        dismissOnTimeout: false
+        dismissOnTimeout: true
     });
 }]);
 
@@ -150,8 +150,7 @@ app.run(['$rootScope', 'websocketService', 'ngToast', function($rootScope, webso
     $rootScope.refreshLights = function(force) {
       websocketService.rpc(force || false ? 'swapserver.refreshLights' : 'swapserver.getLights').then(function(lights) {
         ngToast.info({
-            content: 'Got lights',
-            dismissOnTimeout: true
+            content: 'Got lights'
         });
         $rootScope.lights = lights;
         $rootScope.$broadcast(swap.MQ.Type.LIGHT_STATUS, lights);

@@ -60,7 +60,6 @@ app.controller('DomotixCtrl', [ '$scope', 'websocketService', 'ngToast', functio
       if (selectedLight && (minDistance < defaultDistance)) {
         ngToast.info({
           content: 'Click on ' + selectedLight.name,
-          dismissOnTimeout: true
         });
         websocketService.rpc('swapserver.sendSwapPacket', 
           swap.LightController.Functions.Light, 

@@ -81,6 +81,27 @@ app.controller('AdminCtrl', [ '$scope', 'websocketService', function($scope, web
       return websocketService.rpc('swapserver.cleanByView', $scope.couchDbView);
     };
     
+    /**
+     * Upgrade firmware
+     */
+    $scope.upgrade = {
+      devAddress: 2,
+      firmwareId: '00000001000000010000000100000001',
+      itemNb: '0000'
+    };
+    
+    $scope.startUpgrade = function(upgrade) {
+      websocketService.rpc('swapserver.startUpgrade', upgrade.devAddress, upgrade.firmwareId);
+    };
+    
+    $scope.requestItem = function(upgrade) {
+      return websocketService.rpc('swapserver.messageFromCloud', "00" + swap.num2byte(upgrade.devAddress) + "000101" + swap.num2byte(upgrade.devAddress) + "0B" + upgrade.itemNb);
+    };
+    
+    $scope.endUpgrade = function(upgrade) {
+      return websocketService.rpc('swapserver.messageFromCloud', "00" + swap.num2byte(upgrade.devAddress) + "000100" + swap.num2byte(upgrade.devAddress) + "0300");
+    };
+    
   }
 ]);
 

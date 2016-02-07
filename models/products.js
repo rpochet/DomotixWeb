@@ -35,3 +35,15 @@ exports.getSwapProducts = function() {
     });
     return deferred.promise;
 };
+
+exports.getSwapDeviceFirmare = function(firmareId) {
+    var deferred = $q.defer();
+    DATABASE(DATABASE_NAME).get(firmareId, function(error, doc) {
+        if(error) {
+            deferred.reject(new Error(error));
+        } else {
+            deferred.resolve(doc);
+        }
+    });
+    return deferred.promise;
+}

@@ -14,7 +14,7 @@ var util = require('util');
 */
 exports.getSwapDevice = function(id) {
     var deferred = $q.defer();
-    DATABASE(DATABASE_NAME).one(id, function(error, doc) {
+    DATABASE(DATABASE_NAME).get(id, function(error, doc) {
         if(error) {
             deferred.reject(new Error(error));
         } else {

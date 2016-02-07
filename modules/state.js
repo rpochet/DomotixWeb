@@ -29,7 +29,6 @@ State.prototype.saveState = function(type, id, value) {
     this.states.last = type + "/" + id;
     this.emit("state_updated", this.states);
     this.storeState();
-    
 };
 
 State.prototype.getStates = function() {
@@ -44,10 +43,11 @@ State.prototype.getState = function(type) {
     }
 };
 
-State.prototype.refreshState = function(type) {
+State.prototype.refreshState = function(tye) {
     logger.info("State initialisation...");
+    var self = this;
     MODEL("state").getState().then(function(data) {
-        this.states = data;
+        self.states = data;
         logger.info("State initialised");
         logger.debug("State initialised: %s", JSON.stringify(data));
     });
@@ -55,8 +55,9 @@ State.prototype.refreshState = function(type) {
 
 State.prototype.storeState = function() {
     logger.info("Storing state...");
+    var self = this;
     MODEL("state").saveState(this.states).then(function(data) {
-        this.states = data;
+        self.states = data;
         logger.info("State saved");
         logger.debug("State saved: %s", JSON.stringify(data));
     });

@@ -238,6 +238,10 @@ Registers = {
     id: 10,
     length: -1
   },
+  upgrade: {
+    id: 11,
+    length: -1
+  },
   CUSTOM_1: {
     id: 11,
     length: -1
@@ -280,6 +284,10 @@ SwapStates = {
   LOWBAT: {
     level: 4,
     str: "Low battery"
+  },
+  UPGRADE: {
+    level: 5,
+    str: "Upgrade mode"
   },
   get: function(val) {
     return [this.RESTART, this.RXON, this.RXOFF, this.SYNC, this.LOWBAT][val];
