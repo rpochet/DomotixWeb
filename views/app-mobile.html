@@ -22,7 +22,7 @@
   <div class="tab-pane">
     <ul class="nav nav-tabs">
       <li class="nav-item" ng-repeat="level in levels" title="{{level.name}}">
-        <a href="#level_{{level.id}}" class="nav-link" ng-class="{'active': level.id==2}" role="tab" data-toggle="tab">{{level.name}}</a>
+        <a href="#level_{{level.id}}" class="nav-link" ng-class="{'active': level.id==2}" role="tab" data-toggle="tab">{{level.name}} <span class="badge">({{lightOn(level)}})</span></a>
       </li>
     </ul>
     <div class="tab-content">
@@ -51,7 +51,7 @@
               <stop stop-color="white" offset="100%"></stop>
             </radialGradient>
             
-            <g id="christmas">
+            <!--<g id="christmas">
               <rect x="0" y="0" width="500" height="50" fill="#01009C" stroke-width="0"></rect>
               <circle cx="25" cy="25" r="10" stroke-width="0" fill="#fff">
                 <animate attributeType="CSS" attributeName="opacity" 
@@ -93,7 +93,7 @@
                 <animate attributeType="CSS" attributeName="opacity" 
                   from="0.9" to="0.3" dur="5s" repeatCount="indefinite" />
               </circle>
-            </g>
+            </g>-->
             
             <path id="l3" d="M0,0 v-50 a-50,*50 0 0,0 -50,50 z" fill="yellow" stroke="red" stroke-width="5" />
             <path id="l4" d="M100,100 h-50 a50,50 0 0,0 200,0 z" fill="yellow" stroke="red" stroke-width="5" />

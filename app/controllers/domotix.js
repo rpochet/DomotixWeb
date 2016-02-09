@@ -110,6 +110,16 @@ app.controller('DomotixCtrl', [ '$scope', 'websocketService', 'ngToast', functio
       return t;
     };
     
+    $scope.lightOn = function(level) {
+      var count = 0;
+      angular.forEach(level.rooms, function(room, idx) {
+        angular.forEach(room.lights, function(light, idx) {
+          count += (light.status > 0 ? 1 : 0);
+        });  
+      });
+      return count;
+    };
+    
     $scope.$on(swap.MQ.Type.SWAP_DEVICE, function(event, swapDevice) {
       websocketService.rpc('swapserver.getSwapDevices').then(function(devices) {
         $scope.devices = devices;

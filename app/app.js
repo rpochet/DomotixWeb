@@ -144,16 +144,21 @@ app.run(['$rootScope', 'websocketService', 'ngToast', function($rootScope, webso
           });
         });
         $rootScope.rooms = rooms;
+        $rootScope.$broadcast(swap.MQ.Type.LIGHT_STATUS, $rootScope.lights);
       });
     };
       
     $rootScope.refreshLights = function(force) {
-      websocketService.rpc(force || false ? 'swapserver.refreshLights' : 'swapserver.getLights').then(function(lights) {
+      force = force || false;
+      websocketService.rpc(force ? 'swapserver.refreshLights' : 'swapserver.getLights').then(function(lights) {
         ngToast.info({
             content: 'Got lights'
         });
-        $rootScope.lights = lights;
-        $rootScope.$broadcast(swap.MQ.Type.LIGHT_STATUS, lights);
+        if(force) {
+          
+        } else {          
+          $rootScope.lights = lights;
+        }
       });
     };
       

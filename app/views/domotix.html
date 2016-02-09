@@ -2,7 +2,7 @@
   <div class="tab-pane">
     <ul class="nav nav-tabs">
       <li class="nav-item" ng-repeat="level in levels" title="{{level.name}}">
-        <a href="#level_{{level.id}}" class="nav-link" ng-class="{'active': level.id==2}" role="tab" data-toggle="tab">{{level.name}}</a>
+        <a href="#level_{{level.id}}" class="nav-link" ng-class="{'active': level.id==2}" role="tab" data-toggle="tab">{{level.name}} <span class="badge">({{lightOn(level)}})</span></a>
       </li>
     </ul>
     <div class="tab-content">
