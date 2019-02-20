@@ -20,7 +20,7 @@
     "request": "*",
     "serialport": "*",
     "string": "*",
-    "total.js": "^1.9.6-3"
+    "total.js": ">=3.2.3"
   },
   "scripts": {
     "start": "node app.js"
